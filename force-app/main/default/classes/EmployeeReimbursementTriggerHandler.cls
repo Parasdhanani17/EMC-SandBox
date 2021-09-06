@@ -61,9 +61,7 @@ public with sharing class EmployeeReimbursementTriggerHandler {
     }*/
 
     public static Void mileagefieldupdate(List<Employee_Reimbursement__c> empReimbursList, Map<Id,Employee_Reimbursement__c> empReimburseOld, Map<Id,Employee_Reimbursement__c> empReimburseNew) {         
-        system.debug('empReimbursList==' + empReimbursList);
-        system.debug('empReimburseOld==' + empReimburseOld);
-        system.debug('empReimburseNew==' + empReimburseNew);
+        
         //Set<Id> empReimbursId = new Set<Id>();
         /*for(Employee_Reimbursement__c empreimbuseobj : empReimbursList) {
             if(empreimbuseobj.Status__c != empReimburseOld.get(empreimbuseobj.Id).Status__c && empreimbuseobj.Status__c == 'Approved') {
@@ -75,7 +73,7 @@ public with sharing class EmployeeReimbursementTriggerHandler {
         Employee_Reimbursement__c reimForMil = new Employee_Reimbursement__c();
         for(Employee_Mileage__c empmilege : [Select id, name, Trip_Status__c, Rejected__c, EmployeeReimbursement__c,EmployeeReimbursement__r.Status__c, Approved_Date__c 
             from Employee_Mileage__c where EmployeeReimbursement__c in : empReimbursList]) {
-                system.debug('empmilege=='+ empmilege);
+              
             if(empmilege.EmployeeReimbursement__r.Status__c == 'Approved'){
                 //this static value is used for bypass from here when MappingGasPriceTrigger is called. this is while 'Mileage update after the lock date' is updated  
                 StaticValues.isCalledFromReimTri = false;
@@ -300,6 +298,29 @@ public with sharing class EmployeeReimbursementTriggerHandler {
             if((empReimb.Status__c == 'Approved' || empReimb.Status__c == 'Rejected') && empReimb.Approved_Date__c == null){ 
                 empReimb.AddError('Please insert Approval date');
             }
+        }
+    }
+    //This method is used to set fuel price and mpg 0 to gps account and all other contact who has vehicle type is mileage rate.
+    public static void updateFuelMpgPrice (Set<Id> reimIds){
+        List<String> accIds = new List<String>();
+        List<Employee_Reimbursement__c> reimList = new List<Employee_Reimbursement__c>();
+        if(System.label.FuelPriceAccId != null && System.label.FuelPriceAccId.contains(',')){
+            accIds = System.label.FuelPriceAccId.split(',');
+        } else {
+            accIds.add(System.label.FuelPriceAccId);
+        }
+        for(Employee_Reimbursement__c reimObj : [SELECT id, Contact_Id__r.Vehicle_Type__c, Contact_Id__r.AccountId,
+                                                        Fuel_Price__c, MPG__c 
+                                                    FROM Employee_Reimbursement__c 
+                                                    WHERE Id IN : reimIds
+                                                        AND (Contact_Id__r.AccountId IN: accIds
+                                                        OR Contact_Id__r.Vehicle_Type__c LIKE '%Mileage Rate%' )]) {
+                                                            reimObj.Fuel_Price__c = 0;
+                                                            reimObj.MPG__c = 0;
+                                                            reimList.add(reimObj);
+        }
+        if(!reimList.isEmpty()){
+            update reimList;
         }
     }
 }

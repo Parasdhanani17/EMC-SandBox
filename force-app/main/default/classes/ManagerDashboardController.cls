@@ -82,9 +82,11 @@ public class ManagerDashboardController
         return String.escapeSingleQuotes(WrapperUtils.getLastMonthReimbursements(getContactid(),getAccountid(),boolean.valueOf(getShowTeam()),'Manager'));        
     }
     public static string getAllDriversLastMonthUpdatedUnapprovedReimburseclone(String did,String accid,boolean showTeamRecord)
+
     {   
        return String.escapeSingleQuotes(WrapperUtils.getUnapprovedReimbursements(did,accid,showTeamRecord,'Manager'));
     }
+    
     @RemoteAction
     public static string getAllDriversLastMonthUpdatedUnapprovedReimburseClone1(String did, String accid,string showTeamRecord) 
     {
@@ -94,10 +96,27 @@ public class ManagerDashboardController
     {   
         return String.escapeSingleQuotes(WrapperUtils.getUnapprovedReimbursements(getContactid(),getAccountid(),boolean.valueOf(getShowTeam()),'Manager'));
     }
+    
     @RemoteAction
-    public static List<String> approveReimbursements(String reimbursements,String did,String accid,String showTeamRecord,String updateThreshold)
+    public static AsyncApexJob approveReimbursements(String reimbursements,String did,String accid,String showTeamRecord,String updateThreshold)
     {
         List<String> updatedlist = new List<String>();
+        if(updateThreshold!=null && String.isNotBlank(updateThreshold))
+        {            
+            WrapperUtils.updateContactThresholdLimit(updateThreshold);
+        }
+        // if(reimbursements!=null && String.isNotBlank(reimbursements))
+        // {
+        //     WrapperUtils.updateReimbursements(reimbursements);
+        // }
+        ApproveReimBatch tripBtc = new ApproveReimBatch(reimbursements);
+		ID batchprocessid = Database.executeBatch(tripBtc,1);
+        AsyncApexJob aaj = [SELECT Id, Status,ExtendedStatus, JobItemsProcessed, TotalJobItems, NumberOfErrors 
+                    FROM AsyncApexJob WHERE ID =: batchprocessid ];
+
+		return aaj;
+       /*
+       List<String> updatedlist = new List<String>();
         if(updateThreshold!=null && String.isNotBlank(updateThreshold))
         {            
             WrapperUtils.updateContactThresholdLimit(updateThreshold);
@@ -109,60 +128,43 @@ public class ManagerDashboardController
         updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,boolean.valueOf(showTeamRecord)));
         updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseclone(did,accid,boolean.valueOf(showTeamRecord)));
         return updatedlist;             
-        
+       */ 
+    }
+    @RemoteAction
+    public static List<String> UpdatedReimList(String did,String accid,String showTeamRecord){
+        List<String> updatedlist = new List<String>();
+        updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,boolean.valueOf(showTeamRecord)));
+        updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,boolean.valueOf(showTeamRecord)));
+        return updatedlist;
+    }
+    
+    @RemoteAction
+    public static String CheckBatchStatus(ID batchprocessid){
+        AsyncApexJob aaj = [SELECT Id, Status,ExtendedStatus, JobItemsProcessed, TotalJobItems, NumberOfErrors 
+                    FROM AsyncApexJob WHERE ID =: batchprocessid ];
+        if(aaj.Status == 'Failed'){
+            return aaj.Status+'='+aaj.ExtendedStatus; 
+        }
+		return aaj.Status;
     }
 
     @RemoteAction
-    public static List<String> approveMileagesClone(String mileages, String did, String accid,String showTeamRecord)
+    public static AsyncApexJob approveMileagesClone(String mileages, String did, String accid,String showTeamRecord)
     {
-
+        AsyncApexJob aaj;
         List<String> updatedlist = new List<String>();
         if(mileages!=null)
         {
-            /*mileages=WrapperUtils.replaceAllJson(mileages);
-            List<ReimbursementAndMileages> reimbursementList = new List<ReimbursementAndMileages>();
-            reimbursementList = ReimbursementAndMileages.parse(mileages);            
-            List<Employee_Reimbursement__c> employeeReimbursementList = new List<Employee_Reimbursement__c>(); 
-            Set<String> milelist = new Set<String>();
-
-            if(reimbursementList.size()>0)
-            {
-                for(ReimbursementAndMileages currentReimbursement : reimbursementList)
-                {
-                    if(currentReimbursement.mileagesList!=null && currentReimbursement.mileagesList.size()>0)
-                    {
-                        for(ReimbursementAndMileages.MileagesList currentMileage : currentReimbursement.mileagesList) 
-                        {
-                            milelist.add(currentMileage.Employee_Reimbursement);
-                        }   
-                    }
-                    
-                }   
-                if(milelist.size() > 0) {
-                    for(String currentMileage : milelist) {
-                        Employee_Reimbursement__c currentReimbursement = new Employee_Reimbursement__c();
-                        currentReimbursement.id= String.valueOf(currentMileage);
-                        currentReimbursement.Status__c = 'Approved';
-                        currentReimbursement.Approved_Date__c = System.today();
-                        employeeReimbursementList.add(currentReimbursement);
-                    }   
-                }
-
-                if(employeeReimbursementList.size()>0)
-                {
-                    update employeeReimbursementList;
-                    updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,showTeamRecord));
-                    updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,boolean.valueOf(showTeamRecord)));
-                    return updatedlist;
-                   
-                }                
-             }*/
-             WrapperUtils.approveMileagesClone1(mileages);
-             updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,boolean.valueOf(showTeamRecord)));
-             updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,boolean.valueOf(showTeamRecord)));
-             return updatedlist;
-    }
-    return null;
+            //  WrapperUtils.approveMileagesClone1(mileages);
+            //  updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,boolean.valueOf(showTeamRecord)));
+            //  updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,boolean.valueOf(showTeamRecord)));
+            //  return updatedlist;
+            ApproveReimBatch tripBtc = new ApproveReimBatch(mileages);
+             ID batchprocessid = Database.executeBatch(tripBtc,1);
+             aaj = [SELECT Id, Status,ExtendedStatus, JobItemsProcessed, TotalJobItems, NumberOfErrors 
+                                     FROM AsyncApexJob WHERE ID =: batchprocessid ];
+        }
+    return aaj;
  }       
         
 
@@ -201,5 +203,6 @@ public class ManagerDashboardController
             }   
         }*/
         return String.escapeSingleQuotes(WrapperUtils.getUnapprovedMileages(reimbursementDetails));
-    }    
+    } 
+    
 }

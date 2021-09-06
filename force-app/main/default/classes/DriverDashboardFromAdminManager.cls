@@ -16,6 +16,8 @@ public  class DriverDashboardFromAdminManager
     public static Boolean showlastyear {get;set;}
     public static String nameofEmployee{get;set;}
     public static String emailofEmployee{get;set;}
+    //public static String htmlContent{get;set;}
+
     public DriverDashboardFromAdminManager() 
     {
         obj_currect_contact = new List<contact>();
@@ -30,6 +32,7 @@ public  class DriverDashboardFromAdminManager
         obj_driverpacket_attachMVRsize = obj_driver_driverMVR.size();
 
         obj_current_contact_details = getDriverDetails();
+        //htmlContent = getHtml();
         setEmployeeName();
         obj_driver_insurance = [SELECT id, Body, Name FROM Attachment WHERE id=:obj_currect_contact[0].Insurance_Attachment_Id__c limit 1];
         obj_attachementsize = obj_driver_insurance.size();
@@ -40,6 +43,12 @@ public  class DriverDashboardFromAdminManager
         //getpastYearReimbursement();
 
     }
+    /*public static String getHtml(){
+        StaticResource sr = [SELECT Id, Body FROM StaticResource WHERE Name = 'dynamicFile' LIMIT 1];
+        String body = sr.Body.toString();
+        System.debug('body=' + body);
+        return body;
+    }*/
     public static String getAccountid()
     {
         if(ApexPages.currentPage().getParameters().containsKey('accid') && String.isNotEmpty(ApexPages.currentPage().getParameters().get('accid')))
@@ -104,6 +113,8 @@ public  class DriverDashboardFromAdminManager
         
     }
     
+    
+
     // public static void getpastYearReimbursement(){
         
     //     if(WrapperUtils.getpastYearReimbursement(getDriverid()) > 0)
@@ -143,7 +154,9 @@ public  class DriverDashboardFromAdminManager
     {   
         obj_currect_contact = [SELECT id, Name, MailingPostalCode, MailingState, MailingCity,Driver_Type__c, 
                                         Fixed_Amount__c, compliancestatus__c, Car_Image__c, Account.Name, Account.Logo_Document_Id__c, 
-                                        Vehicle_Type__c,Insurance_Attachment_Id__c, Account.Triplog_API__c, Email 
+                                        Vehicle_Type__c,Insurance_Attachment_Id__c, Account.Triplog_API__c, Email,
+                                        Maintenance__c,Tires__c, Insurance_Rate__c, License_Ragistration__c, Taxes__c,
+                                        Depreciation__c, Total_Monthly_Costs__c, Business_Use__c
                                     FROM Contact 
                                     WHERE id =: getDriverid()];
         return String.escapeSingleQuotes(JSON.serialize(obj_currect_contact));
@@ -160,6 +173,7 @@ public  class DriverDashboardFromAdminManager
     @RemoteAction
     public static String approveMileages(String checked,String selected,String unapprove,String name,String emailaddress)
     {        
+        system.debug('checked'+checked);
         return WrapperUtils.approveMileagesForAdminDash(checked,selected,unapprove,name,emailaddress);
     }
     @RemoteAction
@@ -201,7 +215,7 @@ public  class DriverDashboardFromAdminManager
         UploadConcurQuickExpenseTriplog.postTotalReimbursement(accountId,empReMonth,contactEmail,totalReimburement);
     }
 
-    ////AI-000587	
+    ////AI-000587   
     @RemoteAction
     public static List<BiweeklyPayPeriod.TimeAttedanceWrap> TimeAttendance(String conId,String year){
         return BiweeklyPayPeriod.getTimeAndAttendance(conId,year);
@@ -211,5 +225,23 @@ public  class DriverDashboardFromAdminManager
     public static String getMileagesBasedTandAtt(String startdate,String enddate,String did)
     {
         return String.escapeSingleQuotes(WrapperUtils.getMileagesBasedTA(startdate,enddate,did));
+    } 
+
+    @RemoteAction
+    public static List<BiweeklyPayPeriod.BiweeklyWrap> biweeklyMileage(String conId,Integer year){
+        return BiweeklyPayPeriod.getBiweeklyMileage(conId,year);
+    }
+
+    @RemoteAction
+    public static List<String> getBiweekMileages(string startdate,string enddate,String did)
+    {
+        return BiweeklyPayPeriod.getMileages1(date.valueof(startdate),date.valueof(enddate),did);
+    } 
+
+    @RemoteAction
+    public static string ApproveBiweekMileages(string startdate,string enddate,String did)
+    {
+        BiweeklyPayPeriod.ApproveTrips(date.valueof(startdate),date.valueof(enddate),did);
+        return 'sucess';
     } 
 }

@@ -50,8 +50,8 @@ public class ManagerDashboardFromAdminController_test {
 
         ManagerDashboardFromAdminController.getAllDriversLastMonthUpdatedUnapprovedReimburseClone(obj_Manager_list[0].Id,obj_Account.Id,'false');
         
-        ManagerDashboardFromAdminController.approveReimbursements(JSON.serialize(reimbursementIdList),obj_admincontact.Id,obj_Account.Id,'false');
-
+        AsyncApexJob batch = ManagerDashboardFromAdminController.approveReimbursements(JSON.serialize(reimbursementIdList),obj_admincontact.Id,obj_Account.Id,'false');
+        ManagerDashboardFromAdminController.approveMileagesClone(JSON.serialize(reimbursementIdList),obj_admincontact.Id,obj_Account.Id,'false');
         List<Employee_Reimbursement__c> obj_Employee_Reimbursement_List = RecordUtilityClass.getEmployee_Reimbursement(obj_Account.id);
         List<EmployeeReimbursementDetailsAdmin> obj_EmployeeReimbursementDetailsAdmin_List = RecordUtilityClass.getListofEmployeeReimbursementDetailsAdmin(obj_Employee_Reimbursement_List);
         List<Employee_Mileage__c> obj_list_mileages =  RecordUtilityClass.getMileagesList();
@@ -81,7 +81,8 @@ public class ManagerDashboardFromAdminController_test {
         }
        // ManagerDashboardFromAdminController.approveMileages(JSON.serialize(obj_EmployeeMileages_list1));
        // ManagerDashboardFromAdminController.getUnapprovedMileages(JSON.serialize(obj_list_mileages),obj_Driver_list[0].Id); // obj_list_mileages
-       
+       ManagerDashboardFromAdminController.CheckBatchStatus(batch.id);
+        ManagerDashboardFromAdminController.UpdatedReimList(obj_Manager_list[0].Id,obj_Account.Id, 'true');
         Test.stopTest();
     }
     public static testmethod void ManagerDashboardFromAdminTestMethod2(){
@@ -90,6 +91,7 @@ public class ManagerDashboardFromAdminController_test {
         ManagerDashboardFromAdminController.getAdminid();
         ManagerDashboardFromAdminController.getContactid();
         ManagerDashboardFromAdminController.getRedirected();
+        
         //ManagerDashboardFromAdminController.approveReimbursements(JSON.serialize(listEmp), managerid, obj_Account.Id);
     }
 }

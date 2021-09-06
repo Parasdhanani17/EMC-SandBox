@@ -80,7 +80,8 @@ public class ManagerDashboardFromAdminController
     }
     public static string getAllDriversLastMonthReimbursements()
     {        
-         return String.escapeSingleQuotes(WrapperUtils.getLastMonthReimbursements(getContactid(),getAccountid(),boolean.valueOf(getShowTeam()),'Manager')); 
+         //return String.escapeSingleQuotes(getLastMonthReimbursements(getContactid(),getAccountid(),boolean.valueOf(getShowTeam()),'Manager')); 
+         return String.escapeSingleQuotes(getAllDriversLastMonthUpdatedReimbursements(getContactid(),getAccountid(),getShowTeam()));        
     }
     @RemoteAction
     public static string getAllDriversLastMonthUpdatedReimbursements(String managerid, String accid,String showTeamRecord) {
@@ -107,7 +108,8 @@ public class ManagerDashboardFromAdminController
     }*/
     public static string getAllDriversLastMonthUnapprovedReimbursementsclone()
     {       
-        return getAllDriversLastMonthUpdatedUnapprovedReimburseClone(getContactid(),getAccountid(),getShowTeam());
+       // return getAllDriversLastMonthUpdatedUnapprovedReimburseClone(getContactid(),getAccountid(),getShowTeam());
+         return String.escapeSingleQuotes(WrapperUtils.getUnapprovedReimbursements(getContactid(),getAccountid(),boolean.valueOf(getShowTeam()),'Manager'));
     }
     
     public static string getAllDriversLastMonthUpdatedUnapprovedReimburseClone(String did, String accid,String showTeamRecord) {
@@ -119,64 +121,48 @@ public class ManagerDashboardFromAdminController
         return String.escapeSingleQuotes(WrapperUtils.getUnapprovedReimbursements(did,accid,boolean.valueOf(showTeamRecord),'Manager'));
     }
      @RemoteAction
-    public static List<String> approveReimbursements(String reimbursements,String managerid,String accid,String showTeamRecord)
-    {
-        List<String> updatedlist = new List<String>();        
-        if(reimbursements!=null && String.isNotBlank(reimbursements))
-        {
-            WrapperUtils.updateReimbursements(reimbursements);
+    public static AsyncApexJob approveReimbursements(String reimbursements,String did,String accid,String showTeamRecord)
+    {      
+        //updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(managerid,accid,showTeamRecord));
+        //updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseclone(managerid,accid,showTeamRecord));              
+        ApproveReimBatch tripBtc = new ApproveReimBatch(reimbursements);
+		ID batchprocessid = Database.executeBatch(tripBtc,1);
+        AsyncApexJob aaj = [SELECT Id, Status,ExtendedStatus, JobItemsProcessed, TotalJobItems, NumberOfErrors 
+                    FROM AsyncApexJob WHERE ID =: batchprocessid ];
+		return aaj;
+    }
+     @RemoteAction
+    public static String CheckBatchStatus(ID batchprocessid){
+        AsyncApexJob aaj = [SELECT Id, Status,ExtendedStatus, JobItemsProcessed, TotalJobItems, NumberOfErrors 
+                    FROM AsyncApexJob WHERE ID =: batchprocessid ];
+        if(aaj.Status == 'Failed'){
+            return aaj.Status+'='+aaj.ExtendedStatus; 
         }
-        updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(managerid,accid,showTeamRecord));
-        updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseclone(managerid,accid,showTeamRecord));
-        return updatedlist;               
-        
+		return aaj.Status;
+    }
+    @RemoteAction
+    public static List<String> UpdatedReimList(String did,String accid,String showTeamRecord){
+        List<String> updatedlist = new List<String>();
+        updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,String.valueOf(showTeamRecord)));
+        updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,String.valueOf(showTeamRecord)));
+        return updatedlist;
     }
 
     @RemoteAction
-    public static List<String> approveMileagesClone(String mileages, String did, String accid,String showTeamRecord)
+    public static AsyncApexJob approveMileagesClone(String mileages, String did, String accid,String showTeamRecord)
     {
-        List<String> updatedlist = new List<String>();
+        AsyncApexJob aaj;
         if(mileages!=null)
         {
-           /* mileages=WrapperUtils.replaceAllJson(mileages);
-            List<ReimbursementAndMileages> reimbursementList = new List<ReimbursementAndMileages>();
-            reimbursementList = ReimbursementAndMileages.parse(mileages);            
-            List<Employee_Reimbursement__c> employeeReimbursementList = new List<Employee_Reimbursement__c>(); 
-            Set<String> employeeMileageList = new Set<String>();
-
-            if(reimbursementList.size()>0)
-            {
-                for(ReimbursementAndMileages obj_current_Employee_Mileage : reimbursementList)
-                {
-                    for(ReimbursementAndMileages.MileagesList obj_MileagesList : obj_current_Employee_Mileage.mileagesList) {
-                        employeeMileageList.add(obj_MileagesList.Employee_Reimbursement);
-                    }
-                }   
-                if(employeeMileageList.size() > 0) {
-                    for(String currentMileage : employeeMileageList) {
-                        Employee_Reimbursement__c currentReimbursement = new Employee_Reimbursement__c();
-                        currentReimbursement.id= String.valueOf(currentMileage);
-                        currentReimbursement.Status__c = 'Approved';
-                        currentReimbursement.Approved_Date__c = System.today();
-                        employeeReimbursementList.add(currentReimbursement);
-                    }   
-                }
-
-                if(employeeReimbursementList.size()>0)
-                {
-                    update employeeReimbursementList;
-                    updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,showTeamRecord));
-                    updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,showTeamRecord));
-                    return updatedlist;
-                   
-                }                
-             }*/
              WrapperUtils.approveMileagesClone1(mileages);
-             updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,showTeamRecord));
-             updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,showTeamRecord));
-             return updatedlist;
+            //  updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,showTeamRecord));
+            //  updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,showTeamRecord));
+             ApproveReimBatch tripBtc = new ApproveReimBatch(mileages);
+             ID batchprocessid = Database.executeBatch(tripBtc,1);
+             aaj = [SELECT Id, Status,ExtendedStatus, JobItemsProcessed, TotalJobItems, NumberOfErrors 
+                                     FROM AsyncApexJob WHERE ID =: batchprocessid ];
         }       
-        return null;
+        return aaj;
     }
     @RemoteAction
     public static String approveMileages(String checked,String selected,String unapprove,String name,String emailaddress)

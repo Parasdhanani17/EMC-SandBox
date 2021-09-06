@@ -23,7 +23,9 @@
                     
                     <Cell ss:StyleID="s1"><Data ss:Type="String" >EmployeeId</Data></Cell>
                     <Cell ss:StyleID="s1"><Data ss:Type="String" >EntryDate</Data></Cell>
-                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Drive and Stay Time</Data></Cell>
+                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Week 1</Data></Cell>
+                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Week 2</Data></Cell>
+                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Total Time</Data></Cell>
                     <Cell ss:StyleID="s1"><Data ss:Type="String" >CompanyCode</Data></Cell>
                     <Cell ss:StyleID="s1"><Data ss:Type="String" >GrossToNetCode</Data></Cell>
                     <Cell ss:StyleID="s1"><Data ss:Type="String" >TypeCode</Data></Cell>
@@ -32,7 +34,9 @@
                     <Row>
                         <Cell><Data ss:Type="String">{!wrap.EmployeeId}</Data></Cell>
                         <Cell><Data ss:Type="String">{!wrap.EntryDate}</Data></Cell>
-                        <Cell><Data ss:Type="String">{!wrap.HoursOrAmount}</Data></Cell>
+                        <Cell><Data ss:Type="Number">{!wrap.firstweekAmount}</Data></Cell>
+                        <Cell><Data ss:Type="Number">{!wrap.secondweekamount}</Data></Cell>
+                        <Cell><Data ss:Type="Number">{!wrap.HoursOrAmount}</Data></Cell>
                         <Cell><Data ss:Type="String">{!wrap.CompanyCode}</Data></Cell>
                         <Cell><Data ss:Type="String">{!wrap.GrossToNetCode}</Data></Cell>
                         <Cell><Data ss:Type="String">{!wrap.TypeCode}</Data></Cell>

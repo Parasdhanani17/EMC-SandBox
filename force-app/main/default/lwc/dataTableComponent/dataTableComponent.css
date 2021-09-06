@@ -2,7 +2,8 @@
   text-align: center;
   width: 400px;
   word-wrap: break-word;
-  color: #666;
+  /* color: #666; */
+  color: #fff;
   font-weight: 700;
   margin-top: 20px;
   margin-left: -11rem;
@@ -10,6 +11,9 @@
 }
 .blur{
   opacity: 0.15;
+}
+.dimmed {
+  pointer-events: none;
 }
 .loader {
   width: 48px;
@@ -191,6 +195,41 @@ td {
   background-color: #f7f7f7;
 }
 
+.spinner-load {
+  position: fixed;
+  top: 49%;
+  left: 49%;
+  z-index: 1000000;
+}
+
+.sr-only {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.text-light {
+  color: #f8f9fa!important;
+}
+.no-hover:hover{
+  background-color: none !important; 
+}
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: .25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  -webkit-animation: spinner-border .75s linear infinite;
+  animation: spinner-border .75s linear infinite;
+}
 
 .content td {
   /* background-color: #e1f2fe !important; */
@@ -211,17 +250,14 @@ td {
    left: 670px;
 }
 .spinner-padding {
-  /* position: absolute;
-  left: 44rem;
-  top: 24rem; */
-  position: fixed;
+
+  /* position: fixed;
   top: 429px;
-  /* left: 670px; */
-  /* top: 500px;
-  left: 670px; */
-  /* top: 49%;
-  left: 49%; */
-  z-index: 1000000;
+  z-index: 1000000; */
+  position: fixed;
+    top: 49%;
+    left: 49%;
+    z-index: 1000000;
 }
 .paginate-plugin{
   display: inline-block;

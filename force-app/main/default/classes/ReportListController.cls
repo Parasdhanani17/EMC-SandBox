@@ -7,6 +7,7 @@ public with sharing class ReportListController
 {
     public List<reimbursementWrapper> reimWrapperList {get; set;}
     public string reimburName {get; set;}
+    public boolean checkTripStatus {get; set;}
     public ReportListController() 
     {  
         reimWrapperList = new List<reimbursementWrapper>();
@@ -36,6 +37,15 @@ public with sharing class ReportListController
             }
         }
         reimburName = JSON.serialize(reimWrapperList);
+        for(Account acc : [SELECT id,Trip_Status_Lock__c 
+                                FROM Account 
+                                WHERE id =: getAccountid() ]){
+            if(acc.Trip_Status_Lock__c != null){
+                checkTripStatus = false;
+            } else {
+                checkTripStatus = true;
+            }
+        }
     }
     public static String getAccountid() {
         if (ApexPages.currentPage().getParameters().containsKey('accid')) {
@@ -126,9 +136,21 @@ public with sharing class ReportListController
 
     //AI-000426
     @RemoteAction
-    public static void updateLockDate(String accountId, String lockDate,String contactId){
-        System.debug('accountId'+accountId+''+'lockDate'+lockDate+ 'contactId'+contactId);
-        WrapperUtils.updateLockDate(accountId,lockDate,contactId);
+    public static string updateLockDate(String accountId,String contactId){
+        List<Account> accList = new List<Account>();
+        for(Account acc : [SELECT id,Trip_Status_Lock__c,Change_Status_Admin__c 
+                                FROM Account 
+                                Where id =: accountId]){
+                                    acc.Trip_Status_Lock__c = System.today();
+                                    acc.Change_Status_Admin__c = AdminName(contactId); 
+                                    accList.add(acc);
+        }
+        if(accList.size() > 0){
+            System.debug('accList'+accList);
+            update accList;
+        }
+        WrapperUtils.updateLockDate(accountId,contactId);
+        return 'sucess';
     }
 
     //AI-000150
@@ -159,8 +181,8 @@ public with sharing class ReportListController
         String AdminEmail = EmailAddress(adminId);
         String name = AdminName(adminId);
         TimeSheetImportNetchexBatch tripBtc = new TimeSheetImportNetchexBatch(startDate, endDate, runTime, AdminEmail, name);
-		Database.executeBatch(tripBtc,200);
-		return runTime;
+        Database.executeBatch(tripBtc,200);
+        return runTime;
     }
 
     @RemoteAction
@@ -169,8 +191,8 @@ public with sharing class ReportListController
         String AdminEmail = EmailAddress(adminId);
         String name = AdminName(adminId);
         NetchexVariablePaymentBatch tripBtc = new NetchexVariablePaymentBatch(runTime,startDate,AdminEmail,name);
-		Database.executeBatch(tripBtc,200);
-		return runTime;
+        Database.executeBatch(tripBtc,200);
+        return runTime;
     }
 
     @RemoteAction
@@ -182,7 +204,7 @@ public with sharing class ReportListController
         Database.executeBatch(tripBtc,200);
         return runTime;
     }
-    
+     
     @RemoteAction
     public static PollarResponse CheckStatus(Long longtime, String batchName){
         DateTime runTime = DateTime.newInstance(longtime);
@@ -202,16 +224,24 @@ public with sharing class ReportListController
         String AdminEmail = EmailAddress(adminId);
         String name = AdminName(adminId);
         NetchexFulltimeHalfFPBatch tripBtc = new NetchexFulltimeHalfFPBatch(runTime,startDate,endDate,AdminEmail,name);
-		Database.executeBatch(tripBtc,200);
-		return runTime;
+        Database.executeBatch(tripBtc,200);
+        return runTime;
     }
 
     @RemoteAction
     public static DateTime DeleteNetchexCallout(String startDate,String endDate){
-		DateTime runTime = System.Now();
-		NetchexDeleteCallout.DeletedataFromNetchex(startDate,endDate,runTime);
-		return runTime;
+        DateTime runTime = System.Now();
+        NetchexDeleteCallout.DeletedataFromNetchex(startDate,endDate,runTime);
+        return runTime;
     }
+
+    @RemoteAction
+    public static void ChangeTripStatus(String accId){
+        String lastMonth = Utils.fetchMonths(1, 0)[0];
+        ChangeTripStatusByAdmin tripBtc = new ChangeTripStatusByAdmin(accId,lastMonth);
+        Database.executeBatch(tripBtc,10);
+    }
+
     public class reimbursementWrapper{
         public Id reimbId { get; set; }
         public string name { get; set; }

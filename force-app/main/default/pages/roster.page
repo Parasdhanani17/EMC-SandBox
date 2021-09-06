@@ -156,7 +156,7 @@
                 height: 640px;
             }
 
-            #theBody:-webkit-full-screen .btncancel {
+            /* #theBody:-webkit-full-screen .btncancel {
                 position: relative;
                 left: 47rem;
                 bottom: 3rem;
@@ -166,7 +166,7 @@
                 position: relative;
                 left: 59rem;
                 bottom: 3rem;
-            }
+            } */
 
             header {
                 margin-bottom: 86px;
@@ -190,6 +190,12 @@
                 width: 100%;
             }
 
+            .mt-14{
+                margin-top: 14px; 
+            }
+            .end-text{
+                text-align: end;
+            }
             .submitBtn {
                 box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
             }
@@ -705,6 +711,9 @@
                 cursor: pointer;
             }
 
+            .sync-button:disabled {
+                cursor : not-allowed;
+            }
             input[type=text]:disabled {
                 background: #dddddd;
             }
@@ -1246,11 +1255,20 @@
                 var url_string = $(location).attr("href");
                 var url = new URL(url_string);
                 var valueofreport = '{!($Label.RoleAdminDriver)}';
+                console.log(valueofreport);
                 var errorMsg = '{!($Label.ExceptionLabel)}';
                 $scope.accountERMI = '{!($Label.ERMI_Account)}';
                 $scope.designAIR = '{!($Label.DesignAir)}';
                 $scope.SPBSAcc = '{!($Label.SPBS_Account)}';
                 $scope.EngGypAcc = '{!($Label.NewEnglandGypsum)}';
+                $scope.PLMarketing = '{!($Label.PL_Marketing)}';
+                $scope.manId = url.searchParams.get("managerid");
+                $scope.manVisible = false;
+                if ($scope.manId == undefined || $scope.manId == '') {
+                    $scope.manVisible = false;
+                }else{
+                    $scope.manVisible = true;
+                }
                 var freezeProperty = false;
                 var unfreezebtnproperty = false;
                 var massResetPassword = false;
@@ -1270,7 +1288,7 @@
             $scope.search = "";
             $scope.size = '10mb';
             $scope.employeeslist = [];
-
+            $scope.isSync = true;
             $scope.IsDisplay = false;
             $scope.editDialog = new EditDrivingStatesModel();
             $scope.editDateModel = new EditDeactivationDateModel();
@@ -1296,6 +1314,7 @@
             $scope.itemPerPage = $scope.pageSizeOptions[3];
             $scope.pageSizeChanged = function () {
                 $scope.itemsPerPage = parseInt($scope.itemPerPage);
+                console.log($scope.itemsPerPage, parseInt($scope.itemPerPage));
             }
             var choosenfileType = '';
 
@@ -1317,6 +1336,15 @@
             this.clear = function () {
                 toastr.clear();
             };
+
+            console.log("window", window);
+           // console.log(window.opener.parent.document.getElementById('hidden_user_id') )
+            /* Trip Status For Sync Mileages */
+            // $scope.tripStatus = [];
+            // $scope.tripStatus[0] = "Choose Trip Status...";
+            // $scope.tripStatus[1] = "Un Submitted";
+            // $scope.tripStatus[2] =  "Submitted";
+            // $scope.statusList = $scope.tripStatus[0];
             /* Sync All Mileages Based On Last month and current month */
             $scope.synMonth = [];
             $scope.synMonth[0] = "Choose Syn Month...";
@@ -1344,6 +1372,7 @@
                 loaddatepicker(deactivateDate); /*, lastPayDate*/
             }
 
+            
             /* For Hide Tab*/
             $scope.Hide = function () {
                 $scope.IsVisible = false;
@@ -1431,7 +1460,10 @@
 
             }
 
-            $scope.refreshEmployees();
+          //  if(window.opener === null) {
+                $scope.refreshEmployees();
+         //   }
+           
 
 
 
@@ -1500,6 +1532,15 @@
 
                     angular.forEach(empToUpdate, function (item, key) {
                         $scope.emplistfordownload.push([item.firstName, item.lastName, item.employeeId, item.email, item.city, item.state, item.zipCode, item.cellphone, item.drivingStates != null ? item.drivingStates.join(';') : '', item.activationDate, item.freeze, item.deactivaedDate, item.role, item.managerName, item.vehicalType, item.fixedamount, item.compliancestatus, item.totalreimbursement, item.monthlymileageLimit, item.appVersion, item.glcode, item.sage100ID]);
+
+                    });
+                }
+                else if ($scope.accid === $scope.PLMarketing) {
+                    $scope.emplistfordownload.push(["First Name", "Last name", "EmployeeID", "Email", "City", "State", "Zip Code", "Cell Phone", "Driving States", "Activation Date", "Frozen Date", "Deactivation Date", "Role", "Manager", "Standard Vehicle", "Fixed Amount", "Compliance", "Average Monthly Reimbursement", "Average Monthly Mileage", "App Version", "Division" ,"Job Title", "Department"]);
+                    $scope.employeeslist
+
+                    angular.forEach(empToUpdate, function (item, key) {
+                        $scope.emplistfordownload.push([item.firstName, item.lastName, item.employeeId, item.email, item.city, item.state, item.zipCode, item.cellphone, item.drivingStates != null ? item.drivingStates.join(';') : '', item.activationDate, item.freeze, item.deactivaedDate, item.role, item.managerName, item.vehicalType, item.fixedamount, item.compliancestatus, item.totalreimbursement, item.monthlymileageLimit, item.appVersion, item.divison, item.jobtitle, item.deptPL]);
 
                     });
                 }
@@ -1696,6 +1737,7 @@
             /* Field Edit Funtion Start*/
             $scope.empupdatelist = [];
             $scope.selectedRow = null;
+            // $scope.isCheckedForSync = false;
             $scope.selectedManager = function (event, emplist) {
                 var name = event.target.options[event.target.options.selectedIndex].text;
                 emplist.managerName = name;
@@ -1857,6 +1899,24 @@
                 );
             }
 
+            // $scope.CheckUncheckForSync = function(check){
+            //     $scope.isCheckedForSync = check;
+            //     console.log("Check", $scope.isCheckedForSync);
+            // }
+            $scope.handleStatus = function(status){
+                if(status != 'Choose Trip Status...'){
+                    $scope.isSync = false;
+                }else{
+                    $scope.isSync = true;
+                }
+            }
+            $scope.handleMonth = function(mon){
+                if(mon != 'Choose Syn Month...'){
+                    $scope.isSync = false;
+                }else{
+                    $scope.isSync = true;
+                }
+            }
             $scope.syncAllMileages = function () {
                 $scope.showCancelProBtn = true;
                 var syncDate = new Date();
@@ -1873,20 +1933,25 @@
                     $scope.startDate = $filter('date')(previousMonthDate, 'yyyy-MM-dd');
                     $scope.endDate = $filter('date')(lastDayPreviousMonth, 'yyyy-MM-dd');
                 }
+                // var selectedTrip = ($scope.statusList === 'Submitted') ? 'S' : ($scope.statusList === 'Un Submitted') ? 'U' : null;
                 $('#spinner').show();
-                Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.MassSyncTrips}', $scope.accid, $scope.startDate, $scope.endDate, $scope.syncMonthList,
+                Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.MassSyncTrips}', $scope.accid, $scope.startDate, $scope.endDate, $scope.syncMonthList, 'U',
                     function (result, event) {
                         if (event.status) {
-                            $('#spinner').hide();
-                            toastr.success('Please wait for few minutes. mileage sync process is running in background.');
-                            setTimeout(function () {
-                                location.reload();
-                            }, 2000);
-                        }
-                    },
+                            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.MassSyncTrips}', $scope.accid, $scope.startDate, $scope.endDate, $scope.syncMonthList, 'S',
+                                function (result, event) {
+                                    if (event.status) {
+                                        $('#spinner').hide();
+                                        toastr.success('Please wait for few minutes. mileage sync process is running in background.');
+                                        setTimeout(function () {
+                                            location.reload();
+                                        }, 2000);
+                                    }
+                                })
+                            }
+                        },
                     { escape: false }
                 );
-
             }
             $scope.displayCheckboxForConcur = function () {
                 $scope.checkboxobjConcurShow = true;
@@ -2624,17 +2689,21 @@
             }
             $scope.stateabrivationObj = { drivingstatefordriver: false };
             $scope.rolewisevalidation = function (role) {
-                if (role == 'Driver' || role == 'Driver/Manager' || role == 'Manager') {
+                if (role == 'Driver' || role == 'Driver/Manager' || role == 'Manager' || role == 'Driver/Admin') {
                     $scope.showmanagervalidation = true;
                 }
-
-                if (role == 'Driver' || role == 'Driver/Manager') {
+                if (role == 'Driver' || role == 'Driver/Manager' || role == 'Driver/Admin'){
                     $scope.showvalidation = true;
+                    $scope.isFieldRequired = true;
+                }
+                if (role == 'Driver' || role == 'Driver/Manager') {
+                    // $scope.showvalidation = true;
                     /*$scope.showrequiredfield = true;*/
                     $scope.stateabrivationObj.drivingstatefordriver = true;
                 }
                 if (role == 'Admin' || role == 'Manager') {
                     $scope.showvalidation = false;
+                    $scope.isFieldRequired = false;
                     /*$scope.showrequiredfield = false;*/
                     $scope.stateabrivationObj.drivingstatefordriver = false;
                 }
@@ -2644,6 +2713,7 @@
                 }
             }
             /* Value Pass in Add(Form)tab */
+
             $scope.passData = function (empId) {
                 $('#spinner').show();
                 $scope.IsShow = true;
@@ -2675,18 +2745,39 @@
             if (empId.role === 'Driver') {
                 $scope.IsVisibleLoginDriver = true;
                 $scope.IsVisibleLoginManager = false;
+                $scope.isFieldRequired = true;
+                $scope.showmanagervalidation = true;
+                $scope.showvalidation = true;
                 $scope.userid = empId.userid;
                 $scope.Role = empId.role;
             }
-            else if (empId.role === 'Manager' || empId.role === 'Driver/Manager') {
+            else if (empId.role === 'Manager') {
                 $scope.IsVisibleLoginDriver = false;
                 $scope.IsVisibleLoginManager = true;
                 $scope.userid = empId.userid;
                 $scope.Role = empId.role;
+                $scope.showmanagervalidation = true;
+            }
+            else if(empId.role === 'Driver/Manager'){
+                $scope.IsVisibleLoginDriver = false;
+                $scope.IsVisibleLoginManager = true;
+                $scope.showvalidation = true;
+                $scope.userid = empId.userid;
+                $scope.Role = empId.role;
+                $scope.isFieldRequired = true;
+                $scope.showmanagervalidation = true;
+            }
+            else if(empId.role === valueofreport){
+                $scope.isFieldRequired = true;
+                $scope.showvalidation = true;
+                $scope.showmanagervalidation = true;
             }
             else {
+                $scope.isFieldRequired = false;
                 $scope.IsVisibleLoginDriver = false;
                 $scope.IsVisibleLoginManager = false;
+                $scope.showvalidation = false;
+                $scope.showmanagervalidation = false;
             }
             // AI-000179 Edited By Megha -->
             $scope.rolelist = {!Roles}
@@ -2700,6 +2791,7 @@
             $scope.tabs[1].active = true;
 
             $scope.editUserID = empId.userid;
+            console.log($scope.editUserID);
             let dateAndVehicleList = {!PickListValuesIntoList}
             let tempaccdate = dateAndVehicleList[0];
             let tempdt = new Date(tempaccdate);
@@ -2760,8 +2852,156 @@
                 }, { escape: false }
             );
                 }
+               
 
+                $scope.passInfoData = function (empId) {
+                        $('#spinner').show();
+                        window.opener = null;
+                        $scope.IsShow = true;
+                        $scope.IsShowLinkBtn = true;
+                        // $scope.showMassFreezebtn = false;
+                        $scope.showMassFreezeEmployeebtn = false;
+                        $scope.showMassUnFreezebtn = false;
+                        $scope.showMassUnFreezeEmployeebtn = false;
+                        $scope.showMassEnablebtn = false;
+                        $scope.showMassConcurbtn = false;
+                        $scope.showCancelProBtn = false;
+                        $scope.showMassDeactivatebtn = false;
+                        $scope.showResetPasswordbtn = false;
+                        $scope.showMultipleAction = false;
+                        $scope.managerlist = {!AllManagers
+                    }
+                    $scope.managerlist.sort(function (a, b) {
+                        var nameA = a.Name.toLowerCase(), nameB = b.Name.toLowerCase();
+                        if (nameA < nameB) { //sort string ascending
+                            return -1;
+                        } else if (nameA > nameB) {
+                            return 1;
+                        } else {
+                            return 0; //default return value (no sorting)
+                        }
+                    })
 
+                    // AI-000179 Edited By Megha -->
+                    if (empId.role === 'Driver') {
+                            $scope.IsVisibleLoginDriver = true;
+                            $scope.IsVisibleLoginManager = false;
+                            $scope.isFieldRequired = true;
+                            $scope.showvalidation = true;
+                            $scope.showmanagervalidation = true;
+                            $scope.userid = empId.contactId;
+                            $scope.Role = empId.role;
+                    }
+                    else if (empId.role === 'Manager') {
+                            $scope.IsVisibleLoginDriver = false;
+                            $scope.IsVisibleLoginManager = true;
+                            $scope.showmanagervalidation = true;
+                            $scope.userid = empId.userid;
+                            $scope.Role = empId.role;
+                    }
+                    else if (empId.role === 'Driver/Manager') {
+                            $scope.IsVisibleLoginDriver = false;
+                            $scope.IsVisibleLoginManager = true;
+                            $scope.showvalidation = true;
+                            $scope.showmanagervalidation = true;
+                            $scope.userid = empId.userid;
+                            $scope.Role = empId.role;
+                            $scope.isFieldRequired = true;
+                    }
+                    else if (empId.role === valueofreport) {
+                            $scope.isFieldRequired = true;
+                            $scope.showvalidation = true;
+                            $scope.showmanagervalidation = true;
+                    }
+                    else {
+                            $scope.isFieldRequired = false;
+                            $scope.showvalidation = false;
+                            $scope.IsVisibleLoginDriver = false;
+                            $scope.IsVisibleLoginManager = false;
+                    }
+                    
+                    // AI-000179 Edited By Megha -->
+                    $scope.rolelist = {!Roles}
+                    $scope.jobTitleList = {!JobTitle}
+                    $scope.driverType = {!DriverType}
+                    $scope.departmentList = {!Department}
+                    $scope.Hide();
+                    $scope.tabs[1].active = true;
+
+                    $scope.editUserID = empId.contactId;
+                    console.log($scope.editUserID);
+                    let dateAndVehicleList = {!PickListValuesIntoList}
+                    let tempaccdate = dateAndVehicleList[0];
+                    let tempdt = new Date(tempaccdate);
+                    let d = $filter('date')(tempdt, "MM/dd/yy")
+                    var splicevehiclelist = dateAndVehicleList.splice(1, 1);
+                    $scope.vehiclelist = splicevehiclelist[0].split(";");
+
+                    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.editEmployeeDetails}', $scope.editUserID,
+                        function (result, event) {
+                            $scope.contactData = [];
+                            $scope.relatedcitylist = [];
+                            /*$scope.statelist = [];*/
+                            $scope.contactData = JSON.parse(result);
+                            console.log('contact->', $scope.contactData);
+
+                            angular.forEach($scope.contactData, function (item) {
+                                c('item:--' + item.role);
+                                if (item.IsMassDeactivated == "" || item.IsMassDeactivated == null) {
+                                    item.IsMassDeactivated = false;
+                                }
+                                if (item.IsMassFreeze == "" || item.IsMassFreeze == null) {
+                                    item.IsMassFreeze = false;
+                                }
+                                if (item.addedDate != null && item.addedDate != '') {
+                                    item.addedDate = $scope.formateDate(item.addedDate);
+                                }
+                                else {
+                                    item.addedDate = $filter('date')(new Date(), "MM/dd/yy");
+                                }
+
+                                if (item.activationDate != null && item.activationDate != '') {
+                                    item.activationDate = $scope.formateDate(item.activationDate);
+                                }
+                                if (item.city != null && item.city != '') {
+                                    $scope.relatedcitylist.push(item.city);
+                                }
+                                if (item.role == 'Admin' || item.role == 'Manager') {
+                                    $scope.showrequiredfield = false;
+                                }
+                                if (item.role == 'Driver/Manager' || item.role == 'Driver' || item.role == valueofreport) {
+                                    $scope.showrequiredfield = true;
+                                }
+                            });
+                           
+                            $scope.showcitycountryedit($scope.contactData[0].zipCode, $scope.contactData[0].role)
+                            $scope.backButton = true;
+                            angular.element(document.querySelector("#pills-addadminroster-tab")).addClass(" active");
+                            angular.element(document.querySelector("#pills-addadminroster")).addClass("active");
+                            setTimeout(() => {
+                                $('#spinner').hide();
+                            }, 2000) 
+                            $scope.$apply();
+                            $("#drivingstateContact").tagsinput('destroy');
+                            $("#drivingstateContact").tagsinput('refresh');
+
+                        }, { escape: false }
+                    );
+                }
+
+                if(window.opener != null){
+                    if(window.opener.location.pathname === "/app/ManageNotification"){
+                        angular.element(document.querySelector("#pills-alldrivers-tab")).removeClass("active");
+                        angular.element(document.querySelector("#pills-alldrivers")).removeClass("active");
+                        angular.element(document.querySelector("#pills-alldrivers-tab-back")).removeClass("active");
+                     
+                        var userEmpId = window.opener.parent.document.getElementById('hidden_user_id').value;
+                        var userEmpObj = JSON.parse(userEmpId);
+                       // console.log("user emp id: " + userEmpObj);
+                        $scope.passInfoData(userEmpObj);
+                       
+                        }
+                }
 
             /* Contact Insert Before Check Is already available or not */
             $scope.createUpdateContact = function (con, elementId, sourceId, suffix, form, update) {
@@ -2769,11 +3009,13 @@
 
                 if (con.role == 'Driver' || con.role == 'Driver/Manager' || con.role == valueofreport) {
                     $scope.showrequiredfield = true;
+                    $scope.isFieldRequired = true;
                     $scope.showvalidation = true;
                 }
 
                 if (con.role == 'Driver' || con.role == 'Driver/Manager' || con.role == 'Manager' || con.role == valueofreport) {
                     $scope.showmanagervalidation = true;
+                  
                 }
                 if (con.role == 'Admin') /*Mobio*/ {
                     $scope.showmanagervalidation = false;
@@ -2781,6 +3023,7 @@
 
                 if (con.role == 'Admin' || con.role == 'Manager') {
                     $scope.showrequiredfield = false;
+                    $scope.isFieldRequired = false;
                     $scope.showvalidation = false;
                 }
 
@@ -2800,6 +3043,11 @@
                         inputtovalidate = ["firstname", "lastname", "email", "city", "state", "zip", "role", "jobtitle", "department", "deptDesign", "manager", "vehicalType", "activedate"];
                     }
                 }
+                else if ($scope.accid === $scope.PLMarketing) {
+                    if (con.role == 'Driver' || con.role == 'Driver/Manager' || con.role == valueofreport) {
+                        inputtovalidate = ["firstname", "lastname", "email", "city", "state", "zip", "role", "jobtitle", "divison", "deptPL", "manager", "vehicalType", "activedate"];
+                    }
+                }
                 else if ($scope.accid === $scope.accountERMI) {
                     if (con.role == 'Driver' || con.role == 'Driver/Manager' || con.role == valueofreport) {
                         inputtovalidate = ["firstname", "lastname", "email", "city", "state", "zip", "role", "netchexEmployeeID", "code", "district", "territory", "manager", "vehicalType", "activedate"];
@@ -2814,6 +3062,11 @@
                 if ($scope.accid === $scope.designAIR) {
                     if (con.role == 'Admin' || con.role == 'Manager') {
                         inputtovalidate = ["firstname", "lastname", "email", "role", "jobtitle", "department", "deptDesign", "activedate"];
+                    }
+                }
+                else if ($scope.accid === $scope.PLMarketing) {
+                    if (con.role == 'Admin' || con.role == 'Manager') {
+                        inputtovalidate = ["firstname", "lastname", "email", "role", "jobtitle", "deptPL", "divison", "activedate"];
                     }
                 }
                 else if ($scope.accid === $scope.accountERMI) {
@@ -2839,7 +3092,6 @@
                 });
                 if (count > 0) {
                     $('#spinner').hide();
-
                     let message = count > 1 ? 'Please complete ' + $scope.addfilds + ' required fields.' : 'Please complete required field.';
                     toastr.error(message);
                     return;
@@ -2960,6 +3212,7 @@
                         if (con.role == 'Admin' || con.role == 'Manager') {
                             if ((con.activationDate != '' && con.activationDate != undefined && con.activationDate != null) && (con.addedDate != '' && con.addedDate != undefined && con.addedDate != null) && (con.role != '' && con.role != undefined && con.role != null)) {
                                 $scope.showmanagervalidation = false;
+                                $scope.isFieldRequired = false;
                                 $scope.showrequiredfield = false;
                                 $scope.editUserEmail = con.email;
                                 $scope.conForUpdateInsertfordateformate = [];
@@ -3246,23 +3499,37 @@
                                     id="collapsibleNavbar">
                                     <ul class="navbar-nav flex-row">
                                         <li class="nav-item">
-                                            <a class="nav-link text-white" ng-show="!admindriver" href="/app/admindashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}">Dashboard</a>
-                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/admindriverdashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Dashboard</a>
+                                            <a class="nav-link text-white" ng-show="!admindriver && !manVisible" href="/app/admindashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}">Dashboard</a>
+                                            <a class="nav-link text-white" ng-show="admindriver && !manVisible" href="/app/admindriverdashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Dashboard</a>
+                                            <a class="nav-link text-white" ng-show="!admindriver && manVisible" href="/app/managerdashboardfromadmin?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}">Dashboard</a>
+                                            <a class="nav-link text-white" ng-show="admindriver && manVisible" href="/app/managerdashboardfromadmindriver?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Dashboard</a>
                                         </li>
-                                        <li class="nav-item">
+                                        <li class="nav-item" ng-show="!manVisible">
                                             <a class="nav-link text-white" ng-show="!admindriver" href="/app/MileageDashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}">Mileage</a>
                                             <a class="nav-link text-white" ng-show="admindriver" href="/app/MileageDashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Mileage</a>
                                         </li>
-                                        <li class="nav-item active">
+                                        <li class="nav-item active" ng-show="!manVisible">
                                             <a class="nav-link text-white" ng-show="!admindriver" href="/app/roster?accid={{accid}}&id={{id}}&showteam={{showteam}}">Drivers</a>
                                             <a class="nav-link text-white" ng-show="admindriver" href="/app/roster?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Drivers</a>
                                         </li>
-                                        <li class="nav-item">
+                                        <li class="nav-item active" ng-show="manVisible">
+                                            <a class="nav-link text-white" ng-show="!admindriver" href="/app/roster?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}">Drivers</a>
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/roster?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Drivers</a>
+                                        </li>
+                                        <li class="nav-item" ng-show="!manVisible">
+                                            <a class="nav-link text-white" ng-show="!admindriver"  href="/app/ManageNotification?accid={{accid}}&id={{id}}&showteam={{showteam}}">Communications</a>
+                                            <a class="nav-link text-white" ng-show="admindriver"  href="/app/ManageNotification?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Communications</a>
+                                        </li>
+                                        <li class="nav-item" ng-show="!manVisible">
                                             <a class="nav-link text-white" ng-show="!admindriver" href="/app/reportlist?accid={{accid}}&id={{id}}&showteam={{showteam}}">Reports</a>
                                             <a class="nav-link text-white" ng-show="admindriver" href="/app/reportlist?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Reports</a>
                                         </li>
+                                        <li class="nav-item" ng-show="manVisible">
+                                            <a class="nav-link text-white" ng-show="!admindriver" href="/app/reportlist?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}">Reports</a>
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/reportlist?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Reports</a>
+                                        </li>
                                         <li class="nav-item">
-                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/driveradminmanagermydetail?accid={{accid}}&showteam={{showteam}}&id={{id}}&admindriver=true">My Details</a>
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/driveradminmanagermydetail?managerid={{manId}}&accid={{accid}}&showteam={{showteam}}&id={{id}}&admindriver=true">My Details</a>
                                         </li>
                                         <li class="nav-item">
                                             <a class="nav-link text-white" href="/app/secur/logout.jsp">Logout</a>
@@ -3338,8 +3605,10 @@
                     </li>
                     <!-- AI-000179 Edited By Megha -->
                     <li class="nav-item mb-2 mb-sm-0 mb-md-0" ng-show="IsVisibleLoginManager">
-                        <a class="nav-link" id="pills-loginadminroster-tab" href="/app/managerdashboardfromadmin?managerid={{userid}}&accid={{accid}}&id={{id}}&showteam={{showteam}}&loginAS=true"
-                            role="tab" ng-attr-active="tabs[9].active">Login As</a>
+                        <a class="nav-link" id="pills-loginadminroster-tab" href="/app/drivermanagerdriverdetails?accid={{accid}}&id={{userid}}&manid={{id}}&showteam={{showteam}}&loginAS=true"
+                        role="tab" ng-attr-active="tabs[9].active">Login As</a>
+                        <!-- <a class="nav-link" id="pills-loginadminroster-tab" href="/app/managerdashboardfromadmin?managerid={{userid}}&accid={{accid}}&id={{id}}&showteam={{showteam}}&loginAS=true"
+                            role="tab" ng-attr-active="tabs[9].active">Login As</a> -->
                     </li>
                     <li class="nav-item mb-2 mb-sm-0 mb-md-0" ng-show="IsVisibleLoginDriver">
                         <a class="nav-link" id="pills-loginadminroster-tab" href="/app/driverdashboardfromadminmanager?accid={{accid}}&id={{userid}}&adminid={{id}}&showteam={{showteam}}&loginAS=true"
@@ -3361,7 +3630,7 @@
 
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" ng-click="displayCheckboxForConcur()" ng-if="accid === SPBSAcc || accid === EngGypAcc">Concur Connect</a>
-                        <a class="dropdown-item" ng-click="editSyncAllMileageModel()" ng-if="accid === accountERMI">Sync All</a>
+                        <a class="dropdown-item" ng-click="editSyncAllMileageModel()" ng-if="accid === accountERMI">Sync All</a>    
                         <a class="dropdown-item" ng-click="displayCheckboxForMassResetPassword()">Mass Reset Password</a>
                         <a class="dropdown-item" ng-click="displayCheckboxForEnableUser()">Enable User</a>
                         <a class="dropdown-item" ng-click="editLockDateModel.open();">Mileage Lock Date</a>
@@ -3386,14 +3655,7 @@
                                 <!-- AI-000206 - Start-->
 
                                 <div id="example_filter" class="dataTables_filter pull-left d-block">
-                                    <!-- <div class="col-md-12">
-                Search By:
-                <select class="form-control" ng-model='SearchTerm'>
-                    <option value='$'>Any</option>
-                    <option value='deactivaedDate'>Deactivation date</option>
-                    <option value='drivingStates'>Driving States</option>
-                </select>
-            </div> -->
+                                  
                                     <div class="input-group w-85">
                                         <i id="filtericon" class="fa fa-search" ng-if="search.length===0"></i>
                                         <input class="form-control py-2 border-right-0 border" type="search" ng-model="search" placeholder="Search" aria-controls="example"
@@ -3750,7 +4012,7 @@
                                                     <span class="span-validation" data-toggle="tooltip" data-placement="top" title="Required field" ng-if="showmanagervalidation">*</span>
                                                     <select id="managerid" class="form-control rounded-0" ng-model="contactData[0].managerId" ng-show="IsShow" ng-required="showmanagervalidation"
                                                         name="manager_0">
-                                                        <!-- <option  value=""></option> -->
+                                                        <option  value=""></option>
                                                         <option ng-selected="{{contactData[0].managerId == manager.Id}}" ng-repeat="manager in managerlist" value="{{manager.Id}}">{{manager.Name}}</option>
                                                     </select>
                                                     <select id="managerid" class="form-control rounded-0" ng-model="contactData.managerId" ng-show="!IsShow" ng-required="showmanagervalidation"
@@ -3780,21 +4042,32 @@
                                                         placeholder="" />
                                                 </div>
                                             </div>
-                                            <div class="form-group-theme row" ng-if="accid === designAIR">
+                                            <div class="form-group-theme row" ng-if="accid === PLMarketing">
+                                                <label for="inputdivison" class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Division:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top" title="Required field" ng-if="isFieldRequired">*</span>
+                                                    <input type="text" id="divison" ng-model="contactData[0].divison" ng-show="IsShow" class="numdivisioninput form-control rounded-0 divison"
+                                                       ng-required="isFieldRequired" placeholder=""  name="divison_0"/>
+                                                    <input type="text" id="divison" ng-model="contactData.divison" ng-show="!IsShow" class="numdivisioninput form-control rounded-0 divison"
+                                                       ng-required="isFieldRequired"  placeholder=""  name="divison_1"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row" ng-if="accid === designAIR || accid === PLMarketing">
                                                 <label for="inputjobTitle" class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Job Title:</label>
                                                 <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
-                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top" title="Required field">*</span>
-                                                    <select id="job_name" ng-model="contactData[0].jobtitle" ng-show="IsShow" class="form-control rounded-0" required="true"
-                                                        name="jobtitle_0">
-                                                        <!-- <option value=""></option> -->
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top" title="Required field" ng-if="isFieldRequired">*</span>
+                                                    <select id="job_name" ng-model="contactData[0].jobtitle" ng-show="IsShow" class="form-control rounded-0"
+                                                        name="jobtitle_0" ng-required="isFieldRequired">
+                                                        <option value=""></option>
                                                         <option ng-repeat="jobtitle in jobTitleList" ng-selected="{{contactData[0].jobtitle}}" value="{{jobtitle}}">{{jobtitle}}</option>
                                                     </select>
-                                                    <select id="job_name" ng-model="contactData.jobtitle" ng-show="!IsShow" class="form-control rounded-0" required="true" name="jobtitle_1">
-                                                        <!-- <option value=""></option> -->
+                                                    <select id="job_name" ng-model="contactData.jobtitle" ng-show="!IsShow" class="form-control rounded-0" ng-required="isFieldRequired" name="jobtitle_1">
+                                                        <option value=""></option>
                                                         <option ng-repeat="jobtitle in jobTitleList" value="{{jobtitle}}">{{jobtitle}}</option>
                                                     </select>
                                                 </div>
                                             </div>
+                                         
                                             <div class="form-group-theme row">
                                                 <label for="inputCellphone" class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Cell Phone:</label>
                                                 <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8">
@@ -3891,6 +4164,7 @@
 
                                             <div class="form-group-theme row">
                                                 <label for="inputActivationdate:" class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Activation Date:
+                                 
                                                 </label>
                                                 <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
                                                     <span class="span-validation" data-toggle="tooltip" data-placement="top" title="Required field">*</span>
@@ -4063,6 +4337,17 @@
                                                 </div>
 
                                             </div>
+                                           
+                                            <div class="form-group-theme row" ng-if="accid === PLMarketing">
+                                                <label for="inputdeptPL" class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Department:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top" title="Required field" ng-if="isFieldRequired">*</span>
+                                                    <input type="text" id="deptPL" ng-model="contactData[0].deptPL" ng-show="IsShow" class="form-control rounded-0 numinput deptPL"
+                                                       ng-required="isFieldRequired" placeholder="" name="deptPL_0"/>
+                                                    <input type="text" id="deptPL" ng-model="contactData.deptPL" ng-show="!IsShow" class="form-control rounded-0 numinput deptPL"
+                                                      ng-required="isFieldRequired"  placeholder="" name="deptPL_1"/>
+                                                </div>
+                                            </div>
                                             <div class="form-group-theme row" ng-if="accid === designAIR">
                                                 <label for="inputDepartment" class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Department:</label>
                                                 <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
@@ -4198,7 +4483,7 @@
         </div>
         <!-- Sync All Mileages Modal-->
         <div class="modal fade synAllModal" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-dialog modal-md modal-dialog-centered">
                 <div class="modal-content rounded-0">
                     <button type="button" class="close popup-close-btn" aria-label="Close" ng-click="hideErrorModal()">
                         <span aria-hidden="true">&times;</span>
@@ -4206,15 +4491,28 @@
                     <div class="modal-body">
                         <form name="signup" class="form" novalidate="true">
                             <div class="form-group-theme row">
-                                <label for="inputsync" class="col-xl-5 col-lg-5 col-md-5 col-sm-5 col-form-label form-lable">Sync Month:</label>
-                                <div class="col-xl-7 col-lg-7 col-md-7 col-sm-7">
-                                    <select class="custom-select" ng-model="syncMonthList">
+                                <label for="inputsync" class="col-xl-4 col-lg-2 col-md-4 col-sm-4 col-form-label form-lable">Sync Month:</label>
+                                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6">
+                                    <select class="custom-select" ng-model="syncMonthList" ng-change="handleMonth(syncMonthList)">
                                         <option ng-repeat="month in synMonth" ng-selected="{{syncMonthList == month}}" value="{{month}}">{{month}}</option>
                                     </select>
                                 </div>
+                                <!-- <label for="inputstatus" class="col-xl-2 col-lg-2 col-md-2 col-sm-2 col-form-label form-lable">Trip Status:</label>
+                                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4">
+                                    <select class="custom-select" ng-model="statusList" ng-change="handleStatus(statusList)">
+                                        <option ng-repeat="trip in tripStatus" ng-selected="{{statusList == trip}}" value="{{trip}}" >{{trip}}</option>
+                                    </select>
+                                </div> -->
                             </div>
+                            <!-- <div class="form-group-theme row">
+                                <label for="inputsynccheck" class="col-xl-8 col-lg-8 col-md-8 col-sm-8 col-form-label form-lable">Do you want to change status of trip to mLog system ?</label>
+                                <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3">
+                                    <input type="checkbox" ng-model="isCheckedForSync"  ng-click="CheckUncheckForSync(isCheckedForSync)" class="mt-14"
+                                    />
+                                </div>
+                            </div> -->
                             <div class="form-group  justify-content-center text-center">
-                                <button type="button" class="btn btn-primary" ng-click="syncAllMileages()">Submit</button>
+                                <button type="button" class="btn btn-primary sync-button" ng-click="syncAllMileages()" ng-disabled="isSync">Submit</button>
                                 <button type="button" class="btn btn-secondary" ng-click="hideErrorModal()">Cancel</button>
                             </div>
                         </form>
@@ -4478,6 +4776,14 @@
 
             }
             $(function () {
+                $('.numdivisioninput').on('input', function () {
+                    this.value = this.value
+                        .replace(/[^\d.]/g, '')             // numbers and decimals only
+                        .replace(/(^\.*)\./g, '$1')          // single dot retricted
+                        .replace(/(\..*)\./g, '$1')          // decimal can't exist more than once
+                        .replace(/(\.[\d]{2})./g, '$1');    // not more than 2 digits after decimal
+                });
+                
                 $('.numinput').on('input', function () {
                     this.value = this.value
                         .replace(/[^\d.]/g, '')             // numbers and decimals only
@@ -4501,6 +4807,14 @@
                         .replace(/(^\.*)\./g, '$1')                 // single dot is restricted
                 });
 
+                // $('.deptPL').on('input', function () {
+                //     let alpha = /^[A-Za-z ]+$/;
+                //     this.value =  this.value.replace(/(^[\s])/g, '');
+                //     this.value = this.value
+                //         .replace(/(^\.*)\./g, '$1')        // single dot is restricted
+
+                //     this.value = (this.value.match(alpha)) ? this.value : '';
+                // });
 
             });
 

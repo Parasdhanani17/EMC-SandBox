@@ -227,6 +227,11 @@
                 margin-top: 23px;
             }
 
+            .form-group-theme-md {
+                margin-top: 0px;
+                margin-bottom: 35px;
+            }
+
             .fade:not(.show) {
                 opacity: 1;
             }
@@ -309,67 +314,80 @@
 
                         var url_string = $(location).attr("href");
                         var url = new URL(url_string);
-                        scope.ListAllReports = {!AllReports
-                    };
-                    scope.accid = url.searchParams.get("accid");
-                    scope.id = url.searchParams.get("id");
-                    scope.admindriver = false;
-                    scope.showteam = url.searchParams.get("showteam");
-                    scope.admindriver = url.searchParams.get("admindriver");
-                    if(scope.admindriver == undefined || scope.admindriver == '') {
+                        scope.tripStatus = {!checkTripStatus                    
+};
+                    scope.ListAllReports = {!AllReports                
+};
+                scope.accid = url.searchParams.get("accid");
+                scope.id = url.searchParams.get("id");
                 scope.admindriver = false;
-            }
+                scope.showteam = url.searchParams.get("showteam");
+                scope.admindriver = url.searchParams.get("admindriver");
+                if (scope.admindriver == undefined || scope.admindriver == '') {
+                    scope.admindriver = false;
+                }
 
-
-
-
-
-            scope.updateLockDate = function () {
-                scope.lockDate = $('#report-lockdatepicker').val();
-                scope.reportID = scope.model.reportId;
-                angular.forEach(scope.ListAllReports, function (report) {
-                    if (report.categoryName != undefined) {
-                        report.currentReports.forEach((data) => {
-                            if (data.reportId === scope.reportID) {
-                                data.mileageLockDate = scope.lockDate
+                scope.updateLockDate = function () {
+                    // scope.lockDate = $('#report-lockdatepicker').val();
+                    scope.reportID = scope.model.reportId;
+                    // angular.forEach(scope.ListAllReports, function (report) {
+                    //     if (report.categoryName != undefined) {
+                    //         report.currentReports.forEach((data) => {
+                    //             if (data.reportId === scope.reportID) {
+                    //                 data.mileageLockDate = scope.lockDate
+                    //             }
+                    //         })
+                    //     }
+                    // });
+                    var url_locate = "/app/reportdetail?accid=" + scope.accid + "&id=" + scope.id + "&reportid=" + scope.reportID + "&showteam=" + scope.showteam + "&admindriver=" + "true";
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.ReportListController.updateLockDate}', scope.accid, scope.id,
+                        function (result, event) {
+                            if (event.status) {
+                                if (scope.tripStatus) {
+                                    Visualforce.remoting.Manager.invokeAction(
+                                        '{!$RemoteAction.ReportListController.ChangeTripStatus}', scope.accid,
+                                        function (result, event) {
+                                            if (event.status) {
+                                                $('.lockdateModal').modal('hide');
+                                                location.assign(url_locate);
+                                            }
+                                            else {
+                                                toastr.error('Some error has occur while changing trip status');
+                                            }
+                                            scope.$apply();
+                                        }, { escape: false }
+                                    );
+                                } else {
+                                    $('.lockdateModal').modal('hide');
+                                    location.assign(url_locate);
+                                }
                             }
-                        })
-                    }
-                });
-                var url_locate = "/app/reportdetail?accid=" + scope.accid + "&id=" + scope.id + "&reportid=" + scope.reportID + "&showteam=" + scope.showteam + "&admindriver=" + "true";
-                Visualforce.remoting.Manager.invokeAction(
-                    '{!$RemoteAction.ReportListController.updateLockDate}', scope.accid, scope.lockDate, scope.id,
-                    function (result, event) {
-                        if (event.status) {
-                            $('.lockdateModal').modal('hide');
-                            location.assign(url_locate);
-                        }
-                        else {
-                            $('.lockdateModal').modal('show');
-                            toastr.error('Some error has occur');
+                            else {
+                                $('.lockdateModal').modal('show');
+                                toastr.error('Some error has occur');
+                            }
+                        });
+                }
 
-                        }
+
+
+                element.on('shown.bs.modal', function () {
+                    scope.$apply(function () {
+                        scope.model.visible = true;
                     });
-            }
-
-
-
-            element.on('shown.bs.modal', function () {
-                scope.$apply(function () {
-                    scope.model.visible = true;
                 });
-            });
 
-            element.on('hidden.bs.modal', function () {
-                scope.$apply(function () {
-                    scope.model.visible = false;
+                element.on('hidden.bs.modal', function () {
+                    scope.$apply(function () {
+                        scope.model.visible = false;
+                    });
                 });
-            });
-                       
-                    },
-            template: '<div class="modal fade show lockdateModal" tabindex="-1" role="dialog"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-0"><button type="button" class="close popup-close-btn close-lockdatebtn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><div class="modal-header"><h5 class="modal-heading">Mileage Lock Date</h5></div><div class="modal-body"><form name="signup" class="form" novalidate="true"><div class="form-group-theme row"><label for="inputLockdate:" class="col-xl-5 col-lg-5 col-md-5 col-sm-5 col-form-label form-lable inputLockdate">Lock Date:<span class="tagquestion1"  data-toggle="tooltip"  data-placement="top" data-html="true" title="<b>Any changes made to mileage after the lock date will appear next month.</b>"><i class="fa fa-question"></i></span></label><div class="col-xl-7 col-lg-7 col-md-7 col-sm-7 datepickerinput"><div class="input-group"><input id="report-lockdatepicker" class="form-control rounded-0" placeholder="Select Lock Date" required="true" ng-model="selectedlockDate" /><div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span></div></div></div></div><div class="form-group  justify-content-center text-center"><button class="btn btn-primary submitBtn" ng-click="updateLockDate()">Submit</button><button type="button" class="btn btn-secondary cancelbtn" data-dismiss="modal">Cancel</button></div></form></div></div></div></div>'
+
+            },
+                template: '<div class="modal fade show lockdateModal" tabindex="-1" role="dialog"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-0"><button type="button" class="close popup-close-btn close-lockdatebtn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><div class="modal-header"><h5 class="modal-heading">Mileage Lock Date</h5></div><div class="modal-body"><form name="signup" class="form" novalidate="true"><div class="form-group-theme-md row justify-content-center text-center"><div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">Make sure your team has reviewed the details of each trip and the information is accurate. By generating your report you will lock the trips so they can not be edited.<br />Are you sure you want to generate the report?</div></div><div class="form-group  justify-content-center text-center"><button class="btn btn-primary submitBtn" ng-click="updateLockDate()">Submit</button><button type="button" class="btn btn-secondary cancelbtn" data-dismiss="modal">Cancel</button></div></form></div></div></div></div>'
                 };
-                 
+                            
             }]);
 
 
@@ -683,12 +701,12 @@
                         angular.forEach(scope.reimburesmentDataList, function (reimObj) {
                             if (reimObj.isReimbChecked === true) {
                                 // Job Costing Summary Report For Frampton Construction Account
-                                if(scope.accid === scope.FrampAcc){
+                                if (scope.accid === scope.FrampAcc) {
                                     window_url = 'https://' + host + '/app/JobCostingSummary?id=' + reimObj.reimbId + '&startDate=' + scope.stDate + '&endDate=' + scope.enDate;
-                                }else{
+                                } else {
                                     window_url = 'https://' + host + '/app/TimeandSummaryReport?id=' + reimObj.reimbId + '&startDate=' + scope.stDate + '&endDate=' + scope.enDate;
                                 }
-                               
+
                                 window.open(window_url, '_blank');
                             }
                         });
@@ -713,20 +731,81 @@
 
             }]);
 
-            // var EditTimeCustomReportModel = function(){
+            var EditTimeCustomReportModel = function () {
+                this.visible = false;
+            }
+
+            EditTimeCustomReportModel.prototype.open = function () {
+                this.visible = true;
+            }
+
+            EditTimeCustomReportModel.prototype.close = function () {
+                this.visible = false;
+            }
+
+            app.directive('editTimeCustomReport', ['$filter', '$http',
+                function ($filter, $http) {
+                    return {
+                        restrict: 'E',
+                        scope: {
+                            model: '='
+                        },
+                        link: function (scope, element, attributes) {
+                            scope.$watch('model.visible', function (newValue) {
+                                var modalElement = element.find('.modal');
+                                modalElement.modal(newValue ? 'show' : 'hide');
+                                // if (newValue == true) {
+
+                                // }
+                            });
+
+
+                            var url_string = $(location).attr("href");
+                            var url = new URL(url_string);
+                            var host = url.host;
+                            function refreshModal() {
+                                location.reload();
+                            }
+                            scope.downloadReimbursementReport = function () {
+                                var window_url;
+                                scope.stCustomDate = $('#report-custom-startdatepicker').val();
+                                scope.enCustomDate = $('#report-custom-enddatepicker').val();
+                                window_url = 'https://' + host + '/app/BiWeeklyReimReportforPLM?startDate=' + scope.stCustomDate + '&endDate=' + scope.enCustomDate;
+                                window.open(window_url, '_blank');
+                                refreshModal();
+                            }
+
+                            element.on('shown.bs.modal', function () {
+                                scope.$apply(function () {
+                                    scope.model.visible = true;
+                                });
+                            });
+
+                            element.on('hidden.bs.modal', function () {
+                                scope.$apply(function () {
+                                    scope.model.visible = false;
+                                });
+                            });
+
+                        },
+                        template: '<div class="modal fade driver-dashboard-monthrecord show in " tabindex="-1" role="dialog" aria-labelledby="driver-dashboard-monthrecord" id="driver-dashboard-monthrecord"><div class="fade modal-backdrop"></div><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content rounded-0"> <button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span> </button><div class="modal-body"><h4>Biweekly Reimbursement Report</h4><div class="modal-divider"></div><form name="signup" class="form"><div class="form-row"><div class="form-group-theme row-inline"> <label for="startDate:" class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-form-label form-lable startDate">Start Date: <span class="tagquestion1" data-toggle="tooltip" data-placement="top" data-html="true" title="" data-original-title="<b>Please select start date</b>"> <i class="fa fa-question"></i> </span> </label><div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 datepickerinput"><div class="input-group"> <input id="report-custom-startdatepicker" class="form-control rounded-0 reimbdatepicker2" placeholder="Select Start Date" required="true" ng-model="selectedstartDate" /><div class="input-group-prepend"> <span class="input-group-text"> <i class="fas fa-calendar-alt"></i> </span></div></div></div></div><div class="form-group-theme row-inline"> <label for="endDate:" class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-form-label form-lable endDate">End Date: <span class="tagquestion1" data-toggle="tooltip" data-placement="top" data-html="true" title="" data-original-title="<b>Please select end date</b>"> <i class="fa fa-question"></i> </span> </label><div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 datepickerinput"><div class="input-group"> <input id="report-custom-enddatepicker" class="form-control rounded-0 reimbenddatepicker2" placeholder="Select End Date" required="true" ng-model="selectedendDate" /><div class="input-group-prepend"> <span class="input-group-text"> <i class="fas fa-calendar-alt"></i> </span></div></div></div></div></div></form></div><div class="modal-footer"><div class="col-md-12"> <button id="downloadBiReimReportBtn" class="btn btn-primary float-right mt-3 mb-3" ng-click="downloadReimbursementReport()" disabled>Download <i class="fa fa-download"></i> </button></div></div></div></div></div>'
+                    };
+
+                }]);
+            // var EditTripReportModel = function (){
             //     this.visible = false;
             // }
 
-            // EditTimeCustomReportModel.prototype.open = function(){
+            // EditTripReportModel.prototype.open = function () {
             //     this.visible = true;
             // }
 
-            // EditTimeCustomReportModel.prototype.close = function(){
+            // EditTripReportModel.prototype.close = function () {
             //     this.visible = false;
             // }
 
-            // app.directive('editTimeCustomReport', ['$filter', '$http',
-            //     function ($filter, $http) {
+            // app.directive('editTripReport', ['$filter',
+            //     function ($filter) {
             //         return {
             //             restrict: 'E',
             //             scope: {
@@ -736,44 +815,56 @@
             //                 scope.$watch('model.visible', function (newValue) {
             //                     var modalElement = element.find('.modal');
             //                     modalElement.modal(newValue ? 'show' : 'hide');
-            //                     // if (newValue == true) {
-
-            //                     // }
             //                 });
-
-
             //                 var url_string = $(location).attr("href");
             //                 var url = new URL(url_string);
             //                 var host = url.host;
-            //                 function refreshModal() {
-            //                     location.reload();
-            //                  }
-            //         scope.downloadReimbursementReport = function () {
-            //             var window_url;
-            //             scope.stCustomDate = $('#report-custom-startdatepicker').val();
-            //             scope.enCustomDate = $('#report-custom-enddatepicker').val();
-            //             window_url = 'https://' + host + '/app/TimeSheetNetchexReport?startDate=' + scope.stCustomDate + '&endDate=' + scope.enCustomDate;
-            //             window.open(window_url, '_blank');
-            //             refreshModal();
-            //         }
+            //                 scope.eid = url.searchParams.get("id");
+            //                 scope.accid = url.searchParams.get("accid");
+            //                 var mDate = new Date();
+            //                 var pMonth = new Date(mDate);
+            //                 pMonth.setMonth(mDate.getMonth() - 1);
+            //                 scope.nowMonth =  $filter('date')(pMonth, 'MMMM');
 
-            //         element.on('shown.bs.modal', function () {
-            //             scope.$apply(function () {
-            //                 scope.model.visible = true;
-            //             });
-            //         });
+            //                 scope.onSubmitTripStatus = function(){
+            //                     $('#spinner').show();
+            //                     Visualforce.remoting.Manager.invokeAction(
+            //                         '{!$RemoteAction.ReportListController.ChangeTripStatus}', scope.accid, scope.eid, 
+            //                         function (result, event) {
+            //                             if (event.status) {
+            //                                 $('#spinner').hide();
+            //                                 $('.tripModal').hide();
+            //                                 toastr.success('Approval process going on background.You will receive an email once it is completed.', {timeOut: 6000});
+            //                                 location.reload();
+            //                             }
+            //                             else {
+            //                                 $('#spinner').hide();
+            //                                 toastr.error('Some error has occur while changing trip status');
+            //                                 $('.tripModal').hide();
+            //                             }
+            //                             scope.$apply();
+            //                             }, { escape: false }
+            //                         );
+            //                 }
 
-            //         element.on('hidden.bs.modal', function () {
-            //             scope.$apply(function () {
-            //                 scope.model.visible = false;
-            //             });
-            //         });
+            //                 element.on('shown.bs.modal', function () {
+            //                     scope.$apply(function () {
+            //                         scope.model.visible = true;
+            //                     });
+            //                 });
 
-            //     },
-            //     template: '<div class="modal fade driver-dashboard-monthrecord show in " tabindex="-1" role="dialog" aria-labelledby="driver-dashboard-monthrecord" id="driver-dashboard-monthrecord"><div class="fade modal-backdrop"></div><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content rounded-0"> <button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span> </button><div class="modal-body"><h4>Time And Attendance Report</h4><div class="modal-divider"></div><form name="signup" class="form"><div class="form-row"><div class="form-group-theme row-inline"> <label for="startDate:" class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-form-label form-lable startDate">Start Date: <span class="tagquestion1" data-toggle="tooltip" data-placement="top" data-html="true" title="" data-original-title="<b>Please select start date</b>"> <i class="fa fa-question"></i> </span> </label><div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 datepickerinput"><div class="input-group"> <input id="report-custom-startdatepicker" class="form-control rounded-0 reimbdatepicker2" placeholder="Select Start Date" required="true" ng-model="selectedstartDate" /><div class="input-group-prepend"> <span class="input-group-text"> <i class="fas fa-calendar-alt"></i> </span></div></div></div></div><div class="form-group-theme row-inline"> <label for="endDate:" class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-form-label form-lable endDate">End Date: <span class="tagquestion1" data-toggle="tooltip" data-placement="top" data-html="true" title="" data-original-title="<b>Please select end date</b>"> <i class="fa fa-question"></i> </span> </label><div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 datepickerinput"><div class="input-group"> <input id="report-custom-enddatepicker" class="form-control rounded-0 reimbdatepicker2" placeholder="Select End Date" required="true" ng-model="selectedendDate" /><div class="input-group-prepend"> <span class="input-group-text"> <i class="fas fa-calendar-alt"></i> </span></div></div></div></div></div></form></div><div class="modal-footer"><div class="col-md-12"> <button id="downloadReimReportBtn" class="btn btn-primary float-right mr-302 mt-3 mb-3" ng-click="downloadReimbursementReport()" disabled>Download <i class="fa fa-download"></i> </button></div></div></div></div></div>'
+            //                 element.on('hidden.bs.modal', function () {
+            //                     scope.$apply(function () {
+            //                         scope.model.visible = false;
+
+            //                     });
+            //                 });
+            //             },
+            //             template: '<div class="modal fade driver-dashboard-monthrecord show in tripModal"tabindex="-1"role="dialog"aria-labelledby="driver-dashboard-monthrecord"id="driver-dashboard-monthrecord"><div class="fade modal-backdrop"></div><div class="modal-dialog modal-md modal-dialog-centered"><div class="modal-content rounded-0"><button type="button"class="close popup-close-btn"data-dismiss="modal"aria-label="Close"><span aria-hidden="true">×</span></button><div class="modal-body"><h4>Change Trip Status in mlog/Triplog</h4><div class="modal-divider"></div><form name="signup"class="form"id="myform"><div class="form-row"><div class="form-group-theme-md d-block"><div class="col-md-12 text-center">All approved trips of {{nowMonth}} month will change status of trips in mlog/Triplog as approved.</div></div><div class="form-group-theme-md d-block"><div class="col-md-12 text-center">All rejected trips of {{nowMonth}} month will change status of trips in mlog/Triplog as rejected.</div></div><div class="d-block"><div class="col-md-12 text-center">All pending trips of {{nowMonth}} month will change status of trips in mlog/Triplog as submitted.</div></div></div></form></div><div class="modal-footer mb-3"><div class="col-md-12 mt-3 text-center"><button id="submitTrip" class="btn btn-primary submitBtn" ng-click="onSubmitTripStatus()">Submit</button><button id="cancelTrip" class="btn btn-secondary cancelbtn" data-dismiss="modal" ng-click="cancelTrip()">Cancel</button></div></div></div></div></div>'
             //         };
 
-            // }]);
+            //     }
+            // ]);
 
             var EditNetchexReportModel = function () {
                 this.visible = false;
@@ -806,10 +897,9 @@
                             scope.accid = url.searchParams.get("accid");
                             scope.AISid = '{!($Label.AISAccount)}';
                             function refreshModal() {
-                             location.reload();
-                             }
-                            scope.netchexpayPeriod = '{!($Label.ERMIPayPeriodDate)}'
-                            console.log("Pay period", scope.netchexpayPeriod);
+                                location.reload();
+                            }
+                            scope.netchexpayPeriod = (scope.accid != scope.AISid) ? '{!($Label.ERMIPayPeriodDate)}' : '{!($Label.PayPeriodDate)}';
                             scope.dateObjArr = [];
                             scope.originalObjArr = [];
                             scope.defaultOption = "Select Pay Period";
@@ -823,28 +913,33 @@
                             var currentMonth = $filter('date')(new Date(), 'MMMM');
                             var preMonth = $filter('date')(previousMonth, 'MMMM');
                             var neMonth = $filter('date')(nextMonth, 'MMMM');
-                            angular.forEach(scope.originalObjArr, function(date){
-                                    var split = date.split(' to ');
-                                    var startMonth = $filter('date')(new Date(split[0]), 'MMMM');
-                                    if(startMonth === currentMonth || startMonth === preMonth || startMonth === neMonth) {
-                                        payArr.push(date);
-                                    }
+                            angular.forEach(scope.originalObjArr, function (date) {
+                                var split = date.split(' to ');
+                                var startMonth = $filter('date')(new Date(split[0]), 'MMMM');
+                                if (startMonth === currentMonth || startMonth === preMonth || startMonth === neMonth) {
+                                    payArr.push(date);
+                                }
                             });
                             scope.dateObjArr = payArr;
                             scope.dateObjArr.splice(0, 0, scope.defaultOption);
                             scope.netchexPayRole = scope.dateObjArr[0];
                             scope.startDate = '';
                             scope.endDate = '';
-
+                            scope.reimbursementDownload = true;
                             //progress bar params
                             $('.progress-background').hide();
                             scope.enableBar = false;
                             scope.deProgressBarWidth = 5;
                             iCount = 10;
                             scope.onnetchexPayPeriodChange = function (period) {
-                                scope.splitObj = period.split(' to ');
-                                scope.startDate = scope.splitObj[0];
-                                scope.endDate = scope.splitObj[1];
+                                if (period != "Select Pay Period") {
+                                    scope.splitObj = period.split(' to ');
+                                    scope.startDate = scope.splitObj[0];
+                                    scope.endDate = scope.splitObj[1];
+                                    scope.reimbursementDownload = false;
+                                } else {
+                                    scope.reimbursementDownload = true;
+                                }
                             }
                             scope.onSubmitPay = function () {
                                 $('.progress-background').show();
@@ -911,6 +1006,7 @@
                             }
 
                             scope.downloadReimbursementReport = function () {
+                                var selectedPayPeriod = scope.netchexPayRole;
                                 var window_url;
                                 if (scope.accid === scope.AISid) {
                                     window_url = 'https://' + host + '/app/MileagesforAISAccountReport?startDate=' + scope.startDate + '&endDate=' + scope.endDate;
@@ -952,7 +1048,7 @@
                             });
 
                         },
-                        template: '<div class="modal fade driver-dashboard-monthrecord show in netchexModal" tabindex="-1" role="dialog" aria-labelledby="driver-dashboard-monthrecord" id="driver-dashboard-monthrecord"><div class="fade modal-backdrop"></div><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content rounded-0"> <button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span> </button><div class="modal-body"><h4 ng-if="accid != AISid">Time and Attendance Payment Report</h4><h4 ng-if="accid === AISid">Biweekly Reimbursement Report</h4><div class="modal-divider"></div><form name="signup" class="form" id="myform"><div class="form-row"><div class="form-group-theme row-inline"> <label for="payRole:" class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-form-label form-lable payRole">Pay Period: <span class="tagquestion1" data-toggle="tooltip" data-placement="top" data-html="true" title="" data-original-title="<b>Please select pay period</b>"> <i class="fa fa-question"></i> </span> </label><div class="col-xl-6 col-lg-6 col-md-6 col-sm-6"><select ng-model="netchexPayRole" ng-change="onnetchexPayPeriodChange(netchexPayRole)" class="browser-default custom-select custom-select-xl custom-payPeriod"><option ng-repeat="dateobj in dateObjArr" ng-selected="{{netchexPayRole == dateobj}}" value="{{dateobj}}">{{dateobj}}</option> </select></div></div></div><div class="progress-background"></div><div class="progress" ng-show="enableBar"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{deProgressBarWidth}}" aria-valuemin="0" aria-valuemax="100" ng-style="{ width: ( deProgressBarWidth + \'%\' )}">{{deProgressBarWidth}}%</div></div></form></div><div class="modal-footer mb-3"><div class="col-md-12 mt-3 text-center"> <button id="submitPayment" class="btn btn-primary float-right mt-3" ng-click="onSubmitPay()" ng-if="accid != AISid">Submit</button> <button id="downloadReimReportBtn" class="btn btn-primary float-right mt-3 mb-3" ng-click="downloadReimbursementReport()">Download <i class="fa fa-download"></i> </button></div></div></div></div></div>'
+                        template: '<div class="modal fade driver-dashboard-monthrecord show in netchexModal" tabindex="-1" role="dialog" aria-labelledby="driver-dashboard-monthrecord" id="driver-dashboard-monthrecord"><div class="fade modal-backdrop"></div><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content rounded-0"> <button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span> </button><div class="modal-body"><h4 ng-if="accid != AISid">Time and Attendance Payment Report</h4><h4 ng-if="accid === AISid">Biweekly Mileage Reimbursement Report</h4><div class="modal-divider"></div><form name="signup" class="form" id="myform"><div class="form-row"><div class="form-group-theme row-inline"> <label for="payRole:" class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-form-label form-lable payRole">Pay Period: <span class="tagquestion1" data-toggle="tooltip" data-placement="top" data-html="true" title="" data-original-title="<b>Please select pay period</b>"> <i class="fa fa-question"></i> </span> </label><div class="col-xl-6 col-lg-6 col-md-6 col-sm-6"><select ng-model="netchexPayRole" ng-change="onnetchexPayPeriodChange(netchexPayRole)" class="browser-default custom-select custom-select-xl custom-payPeriod"><option ng-repeat="dateobj in dateObjArr" ng-selected="{{netchexPayRole == dateobj}}" value="{{dateobj}}">{{dateobj}}</option> </select></div></div></div><div class="progress-background"></div><div class="progress" ng-show="enableBar"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{deProgressBarWidth}}" aria-valuemin="0" aria-valuemax="100" ng-style="{ width: ( deProgressBarWidth + \'%\' )}">{{deProgressBarWidth}}%</div></div></form></div><div class="modal-footer mb-3"><div class="col-md-12 mt-3 text-center"> <button id="submitPayment" class="btn btn-primary float-right mt-3" ng-click="onSubmitPay()" ng-if="accid != AISid">Submit</button> <button id="downloadReimReportBtn" class="btn btn-primary float-right mt-3 mb-3" ng-click="downloadReimbursementReport()" ng-disabled="reimbursementDownload">Download <i class="fa fa-download"></i> </button></div></div></div></div></div>'
                     };
 
                 }
@@ -993,7 +1089,7 @@
                             iCount = 10;
 
                             scope.dateNetchexArr = [];
-                            scope.reportDate='';
+                            scope.reportDate = '';
                             var todayDate = new Date();
                             var firstDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
                             var fifteenthDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), 15);
@@ -1002,23 +1098,23 @@
                             scope.dateNetchexArr.push(first);
                             scope.dateNetchexArr.push(fifteenth);
                             scope.dateNetchexArr.splice(0, 0, "Select Date");
-                            scope.monthlyNetchexPay =  scope.dateNetchexArr[0];
-                            scope.onmonthlyNetchexPayChange = function(mdate){
+                            scope.monthlyNetchexPay = scope.dateNetchexArr[0];
+                            scope.onmonthlyNetchexPayChange = function (mdate) {
                                 if (mdate != "Select Date") {
-                                        $('#submitPay').prop('disabled', false);
-                                 }
+                                    $('#submitPay').prop('disabled', false);
+                                }
                                 else {
-                                        $('#submitPay').prop('disabled', true);
+                                    $('#submitPay').prop('disabled', true);
                                 }
                                 scope.reportDate = mdate;
                             }
-                           
+
                             scope.onSubmit = function () {
                                 $('.progress-background').show();
                                 scope.enableBar = true;
                                 // $('#spinner').show();
                                 //  scope.deleteApi = false;
-                               // scope.reportDate = $('.datepicker1').val();
+                                // scope.reportDate = $('.datepicker1').val();
                                 console.log(scope.reportDate);
                                 // scope.endDate = $('.datepicker2').val();
                                 Visualforce.remoting.Manager.invokeAction(
@@ -1173,7 +1269,7 @@
                                 // scope.deleteApi = false;
                                 $('.progress-background').show();
                                 scope.enableBar = true;
-                               // scope.reportDate = $('.datepickerModal').val();
+                                // scope.reportDate = $('.datepickerModal').val();
                                 // scope.endDate = $('.datepicker2Modal').val();
                                 Visualforce.remoting.Manager.invokeAction(
                                     '{!$RemoteAction.ReportListController.postFixedAmountAPI}', scope.reportDate, scope.eid,
@@ -1537,7 +1633,9 @@
 
             }
             console.log($scope.ListAllReports);
+            console.log({!checkTripStatus})
             $scope.showtaxdifferently = true;
+            $scope.chkTripStatus = {!checkTripStatus}
             angular.forEach($scope.ListAllReports, function (report) {
                 if (report.categoryName != undefined && report.categoryName == "Tax Liability Reports") {
                     $scope.showtaxdifferently = false;
@@ -1554,18 +1652,27 @@
             $scope.deltaId = '{!($Label.Delta_Account)}';
             $scope.antonpaarId = '{!($Label.Anton_Paar)}';
             $scope.ERMIAcc = '{!($Label.ERMI_Account)}';
+            $scope.plMAcc = '{!($Label.PLMarketing)}';
             $scope.FrampAcc = '{!($Label.FramptonConstruction)}';
             $scope.AISId = '{!($Label.AISAccount)}';
             var ERMIAdminAcc = '{!($Label.ERMI_ADMIN_ID)}';
             $scope.adminIDs = [];
             $scope.adminIDs = ERMIAdminAcc.split(',');
             $scope.admindriver = false;
+            $scope.manId = url.searchParams.get("managerid");
+            $scope.manVisible = false;
+            if ($scope.manId == undefined || $scope.manId == '') {
+                $scope.manVisible = false;
+            }else{
+                $scope.manVisible = true;
+            }
             $scope.editDateModel = new EditLockDateModel();
             // $scope.stayTimeReportModel = new StayTimeReportModel();
             $scope.editTimeReportModel = new EditTimeReportModel();
             $scope.editMonthlyTaxReportModel = new EditMonthlyTaxReportModel();
-            // $scope.editTimeCustomReportModel = new EditTimeCustomReportModel();
+            $scope.editTimeCustomReportModel = new EditTimeCustomReportModel();
             $scope.editNetchexReportModel = new EditNetchexReportModel();
+            // $scope.editTripReportModel = new EditTripReportModel();
             $scope.editMonthlyNetchexReportModel = new EditMonthlyNetchexReportModel();
             $scope.editPartTimeReportModel = new EditPartTimeReportModel();
             $scope.editFullTimeReportModel = new EditFullTimeReportModel();
@@ -1605,23 +1712,37 @@
 
                                     <ul class="navbar-nav flex-row">
                                         <li class="nav-item">
-                                            <a class="nav-link text-white" ng-show="!admindriver" href="/app/admindashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}">Dashboard</a>
-                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/admindriverdashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Dashboard</a>
+                                            <a class="nav-link text-white" ng-show="!admindriver && !manVisible" href="/app/admindashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}">Dashboard</a>
+                                            <a class="nav-link text-white" ng-show="admindriver && !manVisible" href="/app/admindriverdashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Dashboard</a>
+                                            <a class="nav-link text-white" ng-show="!admindriver && manVisible" href="/app/managerdashboardfromadmin?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}">Dashboard</a>
+                                            <a class="nav-link text-white" ng-show="admindriver && manVisible" href="/app/managerdashboardfromadmindriver?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Dashboard</a>
                                         </li>
-                                        <li class="nav-item">
+                                        <li class="nav-item" ng-show="!manVisible">
                                             <a class="nav-link text-white" ng-show="admindriver" href="/app/MileageDashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Mileage</a>
                                             <a class="nav-link text-white" ng-show="!admindriver" href="/app/MileageDashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}">Mileage</a>
                                         </li>
-                                        <li class="nav-item">
+                                        <li class="nav-item" ng-show="!manVisible">
                                             <a class="nav-link text-white" ng-show="!admindriver" href="/app/roster?accid={{accid}}&id={{id}}&showteam={{showteam}}">Drivers</a>
                                             <a class="nav-link text-white" ng-show="admindriver" href="/app/roster?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Drivers</a>
                                         </li>
-                                        <li class="nav-item active">
+                                        <li class="nav-item" ng-show="manVisible">
+                                            <a class="nav-link text-white" ng-show="!admindriver" href="/app/roster?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}">Drivers</a>
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/roster?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Drivers</a>
+                                        </li>
+                                        <li class="nav-item" ng-show="!manVisible">
+                                            <a class="nav-link text-white" ng-show="!admindriver" href="/app/ManageNotification?accid={{accid}}&id={{id}}&showteam={{showteam}}">Communications</a>
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/ManageNotification?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Communications</a>
+                                        </li>
+                                        <li class="nav-item active" ng-show="!manVisible">
                                             <a class="nav-link text-white" ng-show="!admindriver" href="/app/reportlist?accid={{accid}}&id={{id}}&showteam={{showteam}}">Reports</a>
                                             <a class="nav-link text-white" ng-show="admindriver" href="/app/reportlist?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Reports</a>
                                         </li>
+                                        <li class="nav-item active" ng-show="manVisible">
+                                            <a class="nav-link text-white" ng-show="!admindriver" href="/app/reportlist?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}">Reports</a>
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/reportlist?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Reports</a>
+                                        </li>
                                         <li class="nav-item">
-                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/driveradminmanagermydetail?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">My Details</a>
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/driveradminmanagermydetail?managerid={{manId}}&accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">My Details</a>
                                         </li>
                                         <li class="nav-item">
                                             <a class="nav-link text-white" href="/app/secur/logout.jsp">Logout</a>
@@ -1656,10 +1777,12 @@
                             <h3 class="mb-10 d-block">{{report.categoryName}}</h3>
                             <div ng-if="report.categoryName=='My Custom Reports'" ng-repeat="singlereport in report.currentReports">
                                 <p>
-                                    <a ng-show="!admindriver" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a>
+                                    <a ng-show="!admindriver && !manVisible" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a>
+                                    <a ng-show="!admindriver && manVisible" ng-href="/app/reportdetail?managerid={{manId}}&accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a>
                                 </p>
                                 <p>
-                                    <a ng-show="admindriver" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a>
+                                    <a ng-show="admindriver && !manVisible" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a>
+                                    <a ng-show="admindriver && manVisible" ng-href="/app/reportdetail?managerid={{manId}}&accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a>
                                 </p>
                             </div>
                             <div ng-if="report.categoryName=='Reimbursement Reports'" ng-repeat="singlereport in report.currentReports">
@@ -1668,16 +1791,20 @@
                                     <a ng-show="singlereport.lockDate && singlereport.mileageLockDate == null" ng-click="editDateModel.open(singlereport.reportId)">{{singlereport.reportName}}</a>
                                 </p>
                                 <p>
-                                    <a ng-show="!admindriver && (!singlereport.lockDate && singlereport.mileageLockDate == null)" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a>
+                                    <a ng-show="!admindriver && !manVisible &&(!singlereport.lockDate && singlereport.mileageLockDate == null)" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a>
+                                    <a ng-show="!admindriver && manVisible &&(!singlereport.lockDate && singlereport.mileageLockDate == null)" ng-href="/app/reportdetail?managerid={{manId}}&accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a>
                                 </p>
                                 <p>
-                                    <a ng-show="admindriver && (!singlereport.lockDate && singlereport.mileageLockDate == null)" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a>
+                                    <a ng-show="admindriver && !manVisible &&(!singlereport.lockDate && singlereport.mileageLockDate == null)" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a>
+                                    <a ng-show="admindriver && manVisible && (!singlereport.lockDate && singlereport.mileageLockDate == null)" ng-href="/app/reportdetail?managerid={{manId}}&accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a>
                                 </p>
                                 <p>
-                                    <a ng-show="!admindriver && singlereport.mileageLockDate != null" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a>
+                                    <a ng-show="!admindriver && !manVisible && singlereport.mileageLockDate != null" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a>
+                                    <a ng-show="!admindriver && manVisible && singlereport.mileageLockDate != null" ng-href="/app/reportdetail?managerid={{manId}}&accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a>
                                 </p>
                                 <p>
-                                    <a ng-show="admindriver &&  singlereport.mileageLockDate != null" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a>
+                                    <a ng-show="admindriver && !manVisible && singlereport.mileageLockDate != null" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a>
+                                    <a ng-show="admindriver && manVisible &&  singlereport.mileageLockDate != null" ng-href="/app/reportdetail?managerid={{manId}}&accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a>
                                 </p>
                             </div>
 
@@ -1693,14 +1820,24 @@
                                 </p>
                             </div>
                         </div>
+                        <!-- <div ng-if="chkTripStatus">
+                            <p>
+                                <a ng-click="editTripReportModel.open()"> Change Trip Status in mlog/Triplog</a>
+                            </p>
+                        </div> -->
                         <div ng-if="accid === AISId">
                             <p>
-                                <a ng-click="editNetchexReportModel.open()">Biweekly Reimbursement Report</a>
+                                <a ng-click="editNetchexReportModel.open()">Biweekly Mileage Reimbursement Report</a>
                             </p>
                         </div>
                         <div ng-if="accid === FrampAcc">
                             <p>
                                 <a ng-click="editTimeReportModel.open()"> Job Costing Summary Report</a>
+                            </p>
+                        </div>
+                        <div ng-if="accid === plMAcc">
+                            <p>
+                                <a ng-click="editTimeCustomReportModel.open()">BiWeekly Reimbursement Report</a>
                             </p>
                         </div>
                         <div ng-repeat="admin in adminIDs ">
@@ -1758,8 +1895,9 @@
             <edit-lock-Date model="editDateModel"></edit-lock-Date>
             <edit-time-attendance-Report model="editTimeReportModel"></edit-time-attendance-Report>
             <edit-monthly-tax-Report model="editMonthlyTaxReportModel"></edit-monthly-tax-Report>
-            <!-- <edit-time-custom-Report model="editTimeCustomReportModel"></edit-time-custom-Report> -->
+            <edit-time-custom-Report model="editTimeCustomReportModel"></edit-time-custom-Report>
             <edit-netchex-Report model="editNetchexReportModel"></edit-netchex-Report>
+            <!-- <edit-trip-Report model="editTripReportModel"></edit-trip-Report> -->
             <edit-monthly-netchex-Report model="editMonthlyNetchexReportModel"></edit-monthly-netchex-Report>
             <edit-part-time-Report model="editPartTimeReportModel"></edit-part-time-Report>
             <edit-full-time-Report model="editFullTimeReportModel"></edit-full-time-Report>
@@ -1783,6 +1921,12 @@
                     orientation: "bottom left"
                 });
                 $('.reimbdatepicker2').datepicker({
+                    format: "yyyy-mm-dd",
+                    autoclose: true,
+                    todayHighlight: true,
+                    orientation: "bottom left"
+                });
+                $('.reimbenddatepicker2').datepicker({
                     format: "yyyy-mm-dd",
                     autoclose: true,
                     todayHighlight: true,
@@ -1837,12 +1981,21 @@
                 var disabled = minDate;
                 $('#report-lockdatepicker').datepicker('setEndDate', disabled);
                 $('#report-lockdatepicker').datepicker('setStartDate', disabled);
+                $('.reimbdatepicker2, .reimbenddatepicker2').on('change', function () {
+                    var bistdateVal = $('.reimbdatepicker2').val().trim();
+                    var biendateVal = $('.reimbenddatepicker2').val().trim();
+                    var biweekDownload = bistdateVal.length == 0 || biendateVal.length == 0;
+                    if (biweekDownload) {
+                        $('#downloadBiReimReportBtn').prop('disabled', true);
+                    }
+                    else {
+                        $('#downloadBiReimReportBtn').prop('disabled', false);
+                    }
+
+                });
                 $('.datepicker1').on('change', function () {
                     enableDisableBtn();
                 });
-                // $('.datepickerModal, .datepicker2Modal').on('change', function () {
-                //     enableModalDisableBtn();
-                // });
                 $('.datepickerModal').on('change', function () {
                     enableModalDisableBtn();
                 });

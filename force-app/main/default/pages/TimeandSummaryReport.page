@@ -36,18 +36,18 @@
                         <Cell><Data ss:Type="String">{!wrap.tripDate}</Data></Cell>
                         <Cell><Data ss:Type="String">{!wrap.tripDay}</Data></Cell>
                         <Cell><Data ss:Type="Number">{!wrap.mileage}</Data></Cell>
-                        <Cell><Data ss:Type="String">{!wrap.totaldrivingTime}</Data></Cell>
-                        <Cell><Data ss:Type="String">{!wrap.totalStayTime}</Data></Cell>
-                        <Cell><Data ss:Type="String">{!wrap.totalTime}</Data></Cell>
+                        <Cell><Data ss:Type="Number">{!wrap.totaldrivingTime}</Data></Cell>
+                        <Cell><Data ss:Type="Number">{!wrap.totalStayTime}</Data></Cell>
+                        <Cell><Data ss:Type="Number">{!wrap.totalTime}</Data></Cell>
                     </Row>
                 </apex:repeat>
                 <Row>
                     <Cell ss:StyleID="s1"><Data ss:Type="String" >Total</Data></Cell>
                     <Cell ss:StyleID="s1"><Data ss:Type="String" ></Data></Cell>
-                    <Cell ss:StyleID="s1"><Data ss:Type="String" >{!totalMileges}</Data></Cell>
-                    <Cell ss:StyleID="s1"><Data ss:Type="String" >{!totalDriveTime}</Data></Cell>
-                    <Cell ss:StyleID="s1"><Data ss:Type="String" >{!totalStayTimeForMonth}</Data></Cell>
-                    <Cell ss:StyleID="s1"><Data ss:Type="String" >{!totalTimeForMonth}</Data></Cell>
+                    <Cell ss:StyleID="s1"><Data ss:Type="Number" >{!totalMileges}</Data></Cell>
+                    <Cell ss:StyleID="s1"><Data ss:Type="Number" >{!totalDriveTime}</Data></Cell>
+                    <Cell ss:StyleID="s1"><Data ss:Type="Number" >{!totalStayTimeForMonth}</Data></Cell>
+                    <Cell ss:StyleID="s1"><Data ss:Type="Number" >{!totalTimeForMonth}</Data></Cell>
                 </Row> 
             </Table>
         </Worksheet>

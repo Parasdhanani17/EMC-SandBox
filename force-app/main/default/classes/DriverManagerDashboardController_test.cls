@@ -71,8 +71,10 @@ public class DriverManagerDashboardController_test {
         List<String> reimbursementIdList = new List<String>();
         reimbursementIdList.add(selectedReimList[0].id);
         
-        DriverManagerDashboardController.approveReimbursements(JSON.serialize(reimbursementIdList),obj_driverManager_list[0].Id,currentAccount.id,'true',JSON.serialize(updateThresholdWrapperList));
+        AsyncApexJob batch = DriverManagerDashboardController.approveReimbursements(JSON.serialize(reimbursementIdList),obj_driverManager_list[0].Id,currentAccount.id,'true',JSON.serialize(updateThresholdWrapperList));
         List<Employee_Mileage__c> driverMileagesList =  RecordUtilityClass.getMileagesList();
+        DriverManagerDashboardController.CheckBatchStatus(batch.id);
+        DriverManagerDashboardController.UpdatedReimList(obj_driverManager_list[0].Id, currentAccount.Id, 'true');
         List<EmployeeMileages> obj_EmployeeMileages_list1=new List<EmployeeMileages>();
         List<EmployeeMileages> obj_EmployeeMileages_list=RecordUtilityClass.getallEmployeeMileages(driverMileagesList);
         if(obj_EmployeeMileages_list!=null && obj_EmployeeMileages_list.size()>0)

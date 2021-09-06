@@ -109,7 +109,10 @@
             cursor: pointer;
         }
         .w-85{
-            width: 105%;
+            width: 57%;
+        }
+        .w-105{
+            width: 106%;
         }
      /*Search Bar Css Ends */
 
@@ -423,11 +426,17 @@
         .vw-4 {
             width: 4vw !important;
         }
+        .w-rem{
+            width: 1rem;
+        }
         .mr-15{
             margin-right: 27px;
         }
         .mr-23{
             margin-right: 23px;
+        }
+        .mr-13{
+            margin-right: 13px;
         }
         .mr-11 {
             margin-right: 11px !important;

@@ -10,7 +10,15 @@ public Class MappingGasPriceTriggerTest{
         customSetting.ContactTriggersendEmailForNewContact__c = true;
         customSetting.ContactTriCommunityReimCreate__c = true;
         customSetting.Mileage_Lockdate__c = true;
+        customSetting.MappingMileage__c = true;
+        customSetting.MapTriAppReje__c = true;
         insert customSetting;
+        
+        Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
+        veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
+        veh.vehicle__c = 'Mileage Rate';
+        veh.Year__c = '2019';
+        insert veh;
         
         List<IRS_Mileage_Rate__c> obj_IRS_Mileage_Rate =  RecordUtilityClass.insertIrsRate();
         
@@ -26,7 +34,8 @@ public Class MappingGasPriceTriggerTest{
         insert customSetting2;
         
         Account acc = new Account();
-        acc.Name = 'Test Account';
+        acc.Name = 'PL Marketing';
+        acc.Triplog_API__c = 'asasadfdfsdfsdasaddf';
         insert acc;
         
         Contact con = new Contact();
@@ -38,21 +47,18 @@ public Class MappingGasPriceTriggerTest{
         con.MailingState = 'TX';
         con.Time_Zone__c = 'US/Mountain' ;
         con.Driving_States__c = 'TX';
+        con.Vehicle_Type__c = '2019 Mileage Rate';
         //con.Time_Zone__c = 'America/Chicago';
         con.Monthly_Mileage_Limit__c = 100.00;
         insert con;
         
-        list<Gas_Prices__c> gaslist = new  list<Gas_Prices__c>();
-        for(integer i = 0; i < 5; i++) 
-        {
-            gaslist.add(new  Gas_Prices__c(City__c = 'Delhi' + i, Fuel_Price__c = 65, Month_Year__c = date.today().adddays(-i), State__c = 't' + i));
-        }
-        Insert gaslist;
-        
-        
-         
-
-       
+    
+        Gas_Prices__c gprice = new Gas_Prices__c();
+        gprice.City__c = 'Abilene';
+        gprice.Fuel_Price__c = 65;
+        gprice.State__c = 'TX';
+        gprice.Month_Year__c = date.today().adddays(-1);
+        insert gprice;
         
         Employee_Reimbursement__c er5 = new Employee_Reimbursement__c();
         er5.Contact_Id__c = con.Id;
@@ -65,7 +71,7 @@ public Class MappingGasPriceTriggerTest{
         Employee_Mileage__c emp = new Employee_Mileage__c();
         emp.EmployeeReimbursement__c = er5.id;
         emp.Contact_Email_Id__c = con.External_Email__c;
-        emp.Name = 'Test Mileage Record';
+        emp.Name = 'EMP-Test Mileage Record';
         emp.Trip_Status__c = StaticValues.noApprovedYet;
         emp.Mileage__c = 10.00;
         emp.Fuel_price__c = 10.00;
@@ -94,9 +100,9 @@ public Class MappingGasPriceTriggerTest{
         Employee_Mileage__c emp1 = new Employee_Mileage__c();
         emp1.EmployeeReimbursement__c = er1.id;
         emp1.Contact_Email_Id__c = con.External_Email__c;
-        emp1.Name = 'Test Mileage Record';
+        emp1.Name = 'EMP-Test Mileage Record';
         emp1.Trip_Status__c = 'Approved';
-		emp1.Approved_Date__c = system.today();
+        emp1.Approved_Date__c = system.today();
         emp1.Mileage__c = 10.00;
         emp1.TimeZone__c = 'US/Mountain' ;
         emp1.StartTime__c = system.now();
@@ -104,15 +110,35 @@ public Class MappingGasPriceTriggerTest{
         emp1.Trip_Date__c =date.today().adddays(-1);
         insert emp1;
         
+        emp1.Trip_Status__c = 'Rejected';
+        update emp1;
+        emp1.Trip_Status__c = 'Approved';
+        update emp1;
+        
+        Employee_Mileage__c emp2 = new Employee_Mileage__c();
+        emp2.EmployeeReimbursement__c = er1.id;
+        emp2.Contact_Email_Id__c = con.External_Email__c;
+        emp2.Name = 'EMP-Test Mileage Record';
+        emp2.Trip_Status__c = 'Approved';
+        emp2.Approved_Date__c = system.today();
+        emp2.Mileage__c = 10.00;
+        emp2.TimeZone__c = 'US/Mountain' ;
+        emp2.StartTime__c = system.now();
+        emp2.EndTime__c =  system.now();
+        emp2.Trip_Date__c =date.today().adddays(-1);
+        insert emp2;
+        
+        emp2.Mileage__c = 10.00;
+        update emp2;
         emp1.StartTime__c = emp1.StartTime__c.addSeconds(4);
         emp1.Trip_Status__c = 'Rejected';
         update emp1;
         Map<ID,Employee_Mileage__c> milMap = new Map<ID,Employee_Mileage__c>();
         milMap.put(emp1.id,emp1);
         List<Employee_Mileage__c> mileageNew = new List<Employee_Mileage__c> ();
-		mileageNew.add(emp1);
+        mileageNew.add(emp1);
         MappingGasPriceTriggerHelper.TrackHistory(milMap,mileageNew);
         MappingGasPriceTriggerHelper.updateMileagesLockDate(mileageNew);
-        
+        MappingGasPriceTriggerHelper.updateMileages(mileageNew);
     }
 }

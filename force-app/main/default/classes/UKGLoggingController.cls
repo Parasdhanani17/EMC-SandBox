@@ -9,7 +9,7 @@ public class UKGLoggingController {
     static String tokenURL = 'https://login.ultipro.com';
        
     //This Method is used to get contact from UKG
-    public static void getContact(){
+    public void getContact(){
         //Custom setting for username and password
         UKG_Integration__c ukg = UKG_Integration__c.getValues('MBurse_2021');
         string encodedString = 'BASIC ' + EncodingUtil.base64Encode(blob.valueOf(ukg.Name + ':' + ukg.Password__c));
@@ -57,5 +57,52 @@ public class UKGLoggingController {
                 upsert empList;
             }
         }
+    }
+    public void importTool(){
+        UKG_Integration__c ukg = UKG_Integration__c.getValues('MBurse_2021');
+        string encodedString = 'BASIC ' + EncodingUtil.base64Encode(blob.valueOf(ukg.Name + ':' + ukg.Password__c));
+        baseURL = baseURL + '/personnel/v1/import-tool';
+        System.debug('baseURL=='+ baseURL);
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        String strResp = '<?xml version="1.0" encoding="UTF-8"?> <Transaction xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"> <Header>  <TransactionType>STATUS</TransactionType>            <IdentifierRule>EEID</IdentifierRule>            <ApprovalRule>FORCEAUTO</ApprovalRule>        </Header>        <KeyFields>            <CompanyCode>USG_3</CompanyCode>            <Identifier>1HHOSS000080</Identifier>        </KeyFields>        <Status>            <StatusCode>X</StatusCode>            <StatusStartDate>01/01/2011</StatusStartDate>        </Status>    </Transaction>';
+        
+       /*
+        String strResp='<Transaction xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <Header>
+            <TransactionType>STATUS</TransactionType>
+            <IdentifierRule>EEID</IdentifierRule> //maybe EmployeeID
+            <ApprovalRule>FORCEAUTO</ApprovalRule>
+        </Header>
+        <KeyFields>
+            <CompanyCode>PLMI89</CompanyCode> 
+            <Identifier>1HHOSS000080</Identifier> 
+        </KeyFields>
+        <Status>
+            <StatusCode>X</StatusCode>
+            <StatusStartDate>01/01/2011</StatusStartDate>
+        </Status>
+    </Transaction> ';
+    */
+            Dom.Document doc = new Dom.Document();  
+        doc.load( strResp );  
+        Dom.XMLNode rootElement = doc.getRootElement();  
+        for ( Dom.XMLNode childElement : rootElement.getChildElements() ) {  
+            
+            for ( Dom.XMLNode detailElement : childElement.getChildElements() )  {
+               // system.debug( detailElement.getName() + '-' + detailElement.getText() );  
+            }
+        }  
+
+
+        request.setEndpoint(baseURL);
+        request.setHeader('US-Customer-Api-Key', customerAPIKey);
+        request.setHeader('Authorization', encodedString);
+        request.setHeader('Content-Type', 'text/xml');
+        request.setMethod('POST');
+        request.setBody(strResp);
+        HttpResponse response = http.send(request);
+        System.debug('response=='+ response);
+        
     }
 }

@@ -1,6 +1,7 @@
 @isTest
 Public class drivermanagermydetailcontroller_Test{
     public static testmethod void objMethod1(){
+        List<IRS_Mileage_Rate__c> obj_IRS_Mileage_Rate =  RecordUtilityClass.insertIrsRate();
         RecordUtilityClass.createRecordsAdminDashboardController();
         Contact obj_admin_contact = RecordUtilityClass.getAdminContact();
         Account obj_acc = RecordUtilityClass.getAccount();
@@ -32,6 +33,7 @@ Public class drivermanagermydetailcontroller_Test{
     
     }
     public static testmethod void objMethod2(){
+    List<IRS_Mileage_Rate__c> obj_IRS_Mileage_Rate =  RecordUtilityClass.insertIrsRate();
         RecordUtilityClass.createRecordsAdminDashboardController();
         Account obj_acc = RecordUtilityClass.getAccount();
         Contact obj_driver_contact = RecordUtilityClass.getDriverContact();

@@ -12,7 +12,7 @@ public class GetTripCalloutTest {
         
         Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
         veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
-        veh.vehicle__c =  'Full-Size Sedan';
+        veh.vehicle__c =  'Mileage Rate';
         veh.Year__c = '2019';
         insert veh;
             
@@ -25,6 +25,11 @@ public class GetTripCalloutTest {
         objSendEmailToMe.Name = 'GetTripCallOutApprovePutCall';
         objSendEmailToMe.Send_email_to_me__c = true;
         insert objSendEmailToMe;
+        
+        IRS_Mileage_Rate__c irs = new IRS_Mileage_Rate__c();
+         irs.year__c = String.valueof(system.today().year());
+         irs.IRS_Rate__c = 0.85;
+         insert irs;
 
         Account account = new Account();
         account.Name = 'Test Account';
@@ -37,7 +42,7 @@ public class GetTripCalloutTest {
         currentContact.AccountId = account.Id;
         currentContact.External_Email__c = 'test@test.com';
         currentContact.Triplog_Status__c = 'U';
-        currentContact.Vehicle_Type__c  = '2019 Full-Size Sedan';  
+        currentContact.Vehicle_Type__c  = '2019 Mileage Rate';  
         currentContact.Role__c = 'Driver';  
         insert currentContact;
         
@@ -63,7 +68,7 @@ public class GetTripCalloutTest {
         er1.Month__c = null;
         er1.Name = contact.lastname+':'+er1.month__c;
         er1.Status__c = 'Approved';
-		er1.Approved_Date__c = system.today();
+        er1.Approved_Date__c = system.today();
         er1.Fuel_Price__c = null;
         er1.MPG__c = null;
         er1.Maintenance_and_Tires__c = null;
@@ -127,10 +132,20 @@ public class GetTripCalloutTest {
             
         Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
         veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
-        veh.vehicle__c =  'Full-Size Sedan';
+        veh.vehicle__c =  'Mileage Rate';
         veh.Year__c = '2019';
         insert veh;
-
+        
+        SendEmail__c customSetting1 =  new SendEmail__c();
+        customSetting1.Name = 'Send Email For Compliance';
+        customSetting1.Send_email_from_code__c= true;
+        insert customSetting1;
+        
+        IRS_Mileage_Rate__c irs = new IRS_Mileage_Rate__c();
+         irs.year__c = String.valueof(system.today().year());
+         irs.IRS_Rate__c = 0.85;
+         insert irs;
+        
         Account account = new Account();
         account.Name = 'Test Account';
         account.Triplog_API__c = '123456789';
@@ -142,7 +157,7 @@ public class GetTripCalloutTest {
         currentContact.AccountId = account.Id;
         currentContact.External_Email__c = 'test@test.com';
         currentContact.Triplog_Status__c = 'U';
-        currentContact.Vehicle_Type__c  = '2019 Full-Size Sedan'; 
+        currentContact.Vehicle_Type__c  = '2019 Mileage Rate'; 
         currentContact.Role__c = 'Driver';   
         insert currentContact;
         

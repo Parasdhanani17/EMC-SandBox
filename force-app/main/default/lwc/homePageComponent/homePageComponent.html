@@ -1,7 +1,13 @@
 <template>
     <div class="slds-container" if:true={ready}>
-        <div if:true={loadingSpinner} class="spinner-padding left-padSpin" data-id="spinnerblock">
-            <span class="loader"></span>
+        <div if:true={loadingSpinner}  data-id="spinnerblock"> <!--class="spinner-padding left-padSpin"-->
+            <div class="spinner-background"></div>
+            <div class="spinner-load">
+                <div class="spinner-border text-light" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+            <!-- <span class="loader"></span> -->
         </div>
         <div class="slds-context-bar">
             <div class="slds-context-bar__primary">
@@ -25,7 +31,19 @@
                             <span class="slds-truncate" title="Menu Item">Mileage</span>
                         </a>
                     </li>
+                    <template if:true={managerLoggedIn}>
+                        <li class="slds-context-bar-item" if:true={showUrl}>
+                            <a href={notificationUrl} class="slds-context-bar__label-action" title="Menu Item">
+                                <span class="slds-truncate" title="Menu Item">Communications</span>
+                            </a>
+                        </li>
+                    </template>
                     <template if:true={drivermanagerLoggedIn}>
+                        <li class="slds-context-bar-item"  if:true={showUrl}>
+                            <a href={notificationUrl} class="slds-context-bar__label-action" title="Menu Item">
+                                <span class="slds-truncate" title="Menu Item">Communications</span>
+                            </a>
+                        </li>
                         <li class="slds-context-bar-item">
                             <a href={myDetailurl} class="slds-context-bar__label-action" title="Menu Item">
                                 <span class="slds-truncate" title="Menu Item">My Details</span>
@@ -39,6 +57,11 @@
                             </a>
                         </li>
                         <li class="slds-context-bar-item">
+                            <a href={notificationUrl} class="slds-context-bar__label-action" title="Menu Item">
+                                <span class="slds-truncate" title="Menu Item">Communications</span>
+                            </a>
+                        </li>
+                        <li class="slds-context-bar-item">
                             <a href={reporturl} class="slds-context-bar__label-action" title="Menu Item">
                                 <span class="slds-truncate" title="Menu Item">Reports</span>
                             </a>
@@ -49,6 +72,11 @@
                         <li class="slds-context-bar-item">
                             <a href={driverurl} class="slds-context-bar__label-action" title="Menu Item">
                                 <span class="slds-truncate" title="Menu Item">Drivers</span>
+                            </a>
+                        </li>
+                        <li class="slds-context-bar-item">
+                            <a href={notificationUrl} class="slds-context-bar__label-action" title="Menu Item">
+                                <span class="slds-truncate" title="Menu Item">Communications</span>
                             </a>
                         </li>
                         <li class="slds-context-bar-item">
@@ -209,6 +237,21 @@
                                 </c-multiple-dropdown-component>
                             </td>
                         </tr>
+                        <tr>
+                            <td>
+                                <label class="slds-form-element__label"
+                                for="horizontal-input-id-activity">Activity</label>
+                            </td>
+                            <td>
+                                <c-multiple-dropdown-component field-name="Activity__c" key-field="Id"
+                                    acc-field="EmployeeReimbursement__r.Contact_Id__r.AccountId" admin-id=''
+                                    acc-id={accountId} object-name="Employee_Mileage__c" search-key="Activity__c"
+                                    id-of-driver='' where-field='' default-option="All Activities"
+                                    class="tracingList" dynamic-placeholder="All Activities"
+                                    onhandleselectevent={handleActivity}>
+                                </c-multiple-dropdown-component>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
                 <table>
@@ -255,11 +298,11 @@
                         <div class="slds-dropdown-trigger slds-m-left_x-small">
                             <button class="slds-button slds-button_brand slds-p-left_x-small slds-m-right_xx-small"
                                 aria-haspopup="true">
-                                <lightning-icon icon-name="utility:share" size="x-small" class="slds-p-right_small"
+                                <lightning-icon icon-name="utility:share" size="x-small" class="slds-p-right_small slds-p-bottom_xxx-small"
                                     variant="inverse">
                                 </lightning-icon>Share/Export
                             </button>
-                            <div class="slds-dropdown slds-dropdown--left slds-dropdown--menu">
+                            <div class="slds-dropdown slds-dropdown--left slds-dropdown--menu zIndex">
                                 <ul class="slds-dropdown__list" role="menu">
                                     <li id="menu-0-0" class="slds-dropdown__item">
                                         <a onclick={exportTripsByDate} role="menuitem">
@@ -274,6 +317,16 @@
                                 </ul>
                             </div>
                         </div>
+                        <template if:true={showSync}>
+                            <div class="slds-form-element slds-m-left_x-small">
+                                <button class="slds-button slds-button_brand slds-p-left_x-small"
+                                    onclick={handleSyncAll}>
+                                    <lightning-icon icon-name="utility:sync" size="x-small" class="slds-p-right_small" variant="inverse">
+                                    </lightning-icon>
+                                     Sync All
+                                </button>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -316,18 +369,22 @@
         </div>
 
         <div class="content-body">
-            <c-data-table-component account-i-d={accountId} contact-i-d={Id}
+            <c-data-table-component account-i-d={accountId} contact-i-d={Id} pl-i-d={plMarketing}
                 onhandleapproverejectevent={handleApproveRejectEvent}
                 onhandleapproverejectsearchevent={handleApproveRejectSearchEvent}
                 onhandlesuccessevent={handleSuccessEvent} onhandledeletesuccessevent={handleDeleteSuccessEvent}
                 onhandledeleteevent={handleDeleteEvent} onhandledefaultsuccessevent={handleDefaultSuccessEvent}
                 onhandleupdateevent={handleUpdateEvent} onperpageactionevent={perPageActionEvent}
                 onrowactionevent={rowActionEvent}
-                onhandleexportexcelevent={handleExportExcelEvent}></c-data-table-component>
+                onhandleexportexcelevent={handleExportExcelEvent}
+                onhandlecountexcel={handleCountExcel}
+                onhandlesearchcountexcel={handleSearchCountExcel}></c-data-table-component>
+
             <c-modal-popup modal-header={modalHeader} modal-content={modalContent}
                 approved-trip-list={emailaddressvalue} is-checked={isSelectedChecked}
                 onhandlesendemailevent={handleSendEmailEvent} onhandledeletetripevent={handleDeleteTripEvent}>
             </c-modal-popup>
+            <c-sync-modal acc-id={accountId} onhandlesyncevent={handleSyncEvent}></c-sync-modal>
         </div>
 
     </div>

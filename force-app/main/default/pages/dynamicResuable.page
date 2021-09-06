@@ -1,0 +1,11 @@
+<apex:page >
+<html>
+    <head>
+        <script src="{!URLFOR($Resource.EMC_Header_Scripts,'EMC_Header_Scripts/js/angular.js')}"></script>
+    </head>
+    <body ng-app="managerDashboardModule"  ng-cloak="true">
+        <dynamic-list></dynamic-list>
+    </body>
+</html>
+<!-- End Default Content REMOVE THIS -->
+</apex:page>

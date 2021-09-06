@@ -20,6 +20,7 @@ public class ReportListController_Test {
         //Account
         Account acc = new Account();
         acc.Name = 'Test Account';
+        acc.Triplog_API__c = 'sdffjuhidjdf';
         insert acc;
         //Contact driver List
         List<Contact> driList = new List<Contact>();
@@ -149,6 +150,7 @@ public class ReportListController_Test {
         String endDate = '2020-03-22';
         ReportListController.postTimeSheetImportAPI(startDate,endDate,con.id);
         ReportListController.postVariablePaymentAPI(startDate,con.id);
+        ReportListController.updateLockDate(acc.Id,con.id);
         ReportListController.postFixedAmountAPI(startDate,con.id);
         ReportListController.postHalfFPFullDriverAPI(startDate,endDate,con.id);
         ReportListController.CheckStatus(1234567654,'NetchexDeleteCallout');

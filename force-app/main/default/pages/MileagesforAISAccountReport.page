@@ -21,15 +21,23 @@
                 <Column ss:Width="100"/>
                 <Row>
                     
-                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Name</Data></Cell>
-                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Email</Data></Cell>
-                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Total Reimbursement</Data></Cell> 
+                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Pay Period Ending</Data></Cell>
+                    <Cell ss:StyleID="s1"><Data ss:Type="String" >EmployeeID</Data></Cell>
+                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Name</Data></Cell> 
+                    <Cell ss:StyleID="s1"><Data ss:Type="String" >E-mail</Data></Cell> 
+                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Mileage</Data></Cell> 
+                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Variable Rate</Data></Cell> 
+                    <Cell ss:StyleID="s1"><Data ss:Type="String" >Variable Amount</Data></Cell> 
                 </Row>
                 <apex:repeat value="{!milWrapList}" var="mil">
                     <Row>
+                        <Cell><Data ss:Type="String">{!mil.payperioddate}</Data></Cell>
+                        <Cell><Data ss:Type="String">{!mil.employeeID}</Data></Cell>
                         <Cell><Data ss:Type="String">{!mil.name}</Data></Cell>
                         <Cell><Data ss:Type="String">{!mil.email}</Data></Cell>
-                        <Cell><Data ss:Type="Number">{!mil.TotalReim}</Data></Cell>
+                        <Cell><Data ss:Type="Number">{!mil.mileages}</Data></Cell>
+                        <Cell><Data ss:Type="Number">{!mil.variableRate}</Data></Cell>
+                        <Cell><Data ss:Type="Number">{!mil.variableAmount}</Data></Cell>
                     </Row>
                 </apex:repeat>
             </Table>

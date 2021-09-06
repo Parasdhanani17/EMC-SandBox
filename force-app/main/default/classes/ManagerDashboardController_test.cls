@@ -38,8 +38,10 @@ public class ManagerDashboardController_test {
         currentupdateThresholdWrapper.contactid = selectedDriver.id;
         currentupdateThresholdWrapper.threshold = '20';
         updateThresholdWrapperList.add(currentupdateThresholdWrapper);
-        List<String> result = ManagerDashboardController.approveReimbursements(JSON.serialize(reimbursementIdList),currentAdmin.Id,currentAccount.Id,'false',JSON.serialize(updateThresholdWrapperList));
-        result =ManagerDashboardController.approveMileagesClone(JSON.serialize(reimbursementIdList),currentAdmin.Id,currentAccount.Id,'true');
+        AsyncApexJob batch = ManagerDashboardController.approveReimbursements(JSON.serialize(reimbursementIdList),currentAdmin.Id,currentAccount.Id,'false',JSON.serialize(updateThresholdWrapperList));
+        ManagerDashboardController.approveMileagesClone(JSON.serialize(reimbursementIdList),currentAdmin.Id,currentAccount.Id,'true');
+        ManagerDashboardController.CheckBatchStatus(batch.id);
+        ManagerDashboardController.UpdatedReimList(currentAdmin.Id,currentAccount.Id, 'true');
         ManagerDashboardController.setEmployeeName();
         Test.stopTest();
     }

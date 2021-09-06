@@ -232,7 +232,7 @@ export default class ValidateDataListComponent extends LightningElement {
             detail: targetId
         });
         this.dispatchEvent(selectedEvent);
-        //console.log("Object",selectedEvent);
+        
         const targetEvent = new CustomEvent("handleselectevent", {
             detail: targetname
         });

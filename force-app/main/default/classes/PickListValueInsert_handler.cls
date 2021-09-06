@@ -1,68 +1,61 @@
+//////////////////////////////////////////////////////////////////////////////////
+//																				
+//
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////////
+
 public class PickListValueInsert_handler{
     public class MetadataServiceExamplesException extends Exception { }
     @Future(callout=true)
     public static void createPickValue(Set<String> pick1,String newMapString){
-        
-        Map<Id, Account> newMap = (Map<Id, Account>)JSON.deserialize(newMapString, Map<Id, Account>.class);
-       
-        for(Test_4__c test4Val : newMap.Values()){
-            if(firstDependentMap.ContainsKey(test4Val.Pick_2__c)){
-                firstDependentMap.get(test4Val.Pick_2__c).add(test4Val.Pick_1__c); 
-            }
-        }
-        
-        List<Set<String>> masterPick = new List<Set<String>>();
-        masterPick.add(pick1);
-        System.debug('masterPick-->'+masterPick);
-        
+        try{            
+            system.debug('pick1==' + pick1);
+            system.debug('newMapString'+ newMapString);
+            Map<Id, Account> newMap = (Map<Id, Account>)JSON.deserialize(newMapString, Map<Id, Account>.class);
+            system.debug('newMap=='+ newMap);
             
-        for( integer i = 0 ; i < 3 ; i++ ){
+            //existing picklist value map currently available value of multiselect picklist
+            map<String,String> existPickValueMap = new map<String,String>();
+            
+            Schema.DescribeFieldResult fieldResult = Account.Vehicle_Types__c.getDescribe(); 
+            List<Schema.PicklistEntry> values = fieldResult.getPicklistValues(); 
+            
+            for( Schema.PicklistEntry v : values) { 
+                existPickValueMap.put(v.getLabel(),v.getValue());
+            }
+            system.debug('existPickValueMap=='+ existPickValueMap);
+            
             MetadataService.MetadataPort service = createService();     
             MetadataService.CustomField customField = new MetadataService.CustomField();
-            customField.fullName = 'Test_4__c.';
-            customField.label = Labels[i];
-            customField.type_x = 'Picklist';
+            customField.fullName = 'Account.Vehicle_Types__c';  
+            customField.label = 'Vehicle Types'; 
+            customField.type_x = 'MultiselectPicklist';
+            customField.visibleLines = 4;
             
             metadataservice.Picklist pt = new metadataservice.Picklist();
             pt.sorted= false;
             pt.picklistValues = new list<metadataservice.PicklistValue>();
-            System.debug('apis-->'+APIs[i]);
-            //String sp = APIs[i];
-            //System.debug('apis split-->'+sp.split('.'));
-            //String[] controllingFieldName = APIs[i];
-            if(i > 0){
-                pt.controllingField = APIs[i-1];
+            for(String obj : pick1){
+                if(!existPickValueMap.containskey(obj)){
+                    metadataservice.PicklistValue plValue = new metadataservice.PicklistValue();
+                    plValue.fullName= obj;
+                    plValue.default_x=false ;
+                    pt.picklistValues.add(plValue);
+                }  
             }
-            for(String str : masterPick[i]){
-                metadataservice.PicklistValue plValue = new metadataservice.PicklistValue();
-                plValue.fullName= str;
-                plValue.default_x=false ;
-                
-                System.debug(i+'<--masterPick[i]-->'+masterPick[i]);
-                
-                if(i == 1){
-                   System.debug('iiiiiiiii-->'+i);
-                   List<String> fistList=new List<String>();
-                   fistList.addAll(firstDependentMap.get(str));
-                   System.debug('fistList-->'+fistList);
-                   plValue.controllingFieldValues = fistList; 
-                }
-                if(i == 2){
-                   System.debug('iiiiiiiii-->'+i);
-                   List<String> secondList=new List<String>();
-                   secondList.addAll(secondDependentMap.get(str));
-                   System.debug('secondList-->'+secondList);
-                   plValue.controllingFieldValues = secondList; 
-                }
-                
-                pt.picklistValues.add(plValue);
-            }        
             customField.picklist = pt ;
             
             List<MetadataService.SaveResult> results =
                 service.updateMetadata(
                     new MetadataService.Metadata[] { customField });
             handleSaveResults(results[0]);
+            
+            system.debug('results=='+results);
+        }
+        catch(exception e){
+            system.debug('excaption=='+ e.getmessage()+' and line number is '+e.getlinenumber());
         }
     }
     public static void handleSaveResults(MetadataService.SaveResult saveResult)
@@ -76,17 +69,21 @@ public class PickListValueInsert_handler{
             List<String> messages = new List<String>();
             messages.add(
                 (saveResult.errors.size()==1 ? 'Error ' : 'Errors ') +
-                    'occured processing component ' + saveResult.fullName + '.');
+                'occured processing component ' + saveResult.fullName + '.');
             for(MetadataService.Error error : saveResult.errors)
                 messages.add(
                     error.message + ' (' + error.statusCode + ').' +
                     ( error.fields!=null && error.fields.size()>0 ?
-                        ' Fields ' + String.join(error.fields, ',') + '.' : '' ) );
-            if(messages.size()>0)
+                     ' Fields ' + String.join(error.fields, ',') + '.' : '' ) );
+            if(messages.size()>0){
+                system.debug('message='+messages);
                 throw new MetadataServiceExamplesException(String.join(messages, ' '));
+            }
         }
-        if(!saveResult.success)
+        if(!saveResult.success){
+            
             throw new MetadataServiceExamplesException('Request failed with no specified error.');
+        }  
     }
     public static MetadataService.MetadataPort createService()
     { 

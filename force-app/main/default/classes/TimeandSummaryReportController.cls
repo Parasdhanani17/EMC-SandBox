@@ -9,13 +9,13 @@
 public with sharing class TimeandSummaryReportController {
     public List<mileageWrapper> mileageWrapperList{get;set;}
     public double totalMileges {get; set;}
-    public string totalDriveTime {get; set;}
-    public string totalStayTimeForMonth {get; set;}
-    public string totalTimeForMonth {get; set;}
+    public decimal totalDriveTime {get; set;}
+    public decimal totalStayTimeForMonth {get; set;}
+    public decimal totalTimeForMonth {get; set;}
     public string contactName {get; set;}
-    public integer totalMinute;
-    public integer totalStay;
-    public integer totalTimes;
+    public decimal totalMinute;
+    public decimal totalStay;
+    public decimal totalTimes;
     public String xlsHeader{
         get{
             String strHeader = '';
@@ -96,21 +96,21 @@ public with sharing class TimeandSummaryReportController {
             }
          
             if(totalMinute > 0 ){
-                totalMinute = totalMinute + Integer.valueOf(tripdateDrivingTimeMap.get(currentDate));
+                totalMinute = totalMinute + tripdateDrivingTimeMap.get(currentDate);
             } else {
-                totalMinute = Integer.valueOf(tripdateDrivingTimeMap.get(currentDate));
+                totalMinute = tripdateDrivingTimeMap.get(currentDate);
             }
             
             if(totalStay > 0 && tripStayTimeMap.containsKey(currentDate)){
-                totalStay = totalStay + Integer.valueOf(tripStayTimeMap.get(currentDate));
+                totalStay = totalStay + tripStayTimeMap.get(currentDate);
             } else {
-                totalStay = Integer.valueOf(tripStayTimeMap.get(currentDate));
+                totalStay = tripStayTimeMap.get(currentDate);
             }
 
             if(totalTimes > 0 && tripTotalTimeMap.containsKey(currentDate)){
-                totalTimes = totalTimes + Integer.valueOf(tripTotalTimeMap.get(currentDate));
+                totalTimes = totalTimes + tripTotalTimeMap.get(currentDate);
             } else {
-                totalTimes = Integer.valueOf(tripTotalTimeMap.get(currentDate));
+                totalTimes = tripTotalTimeMap.get(currentDate);
             }
 
             mileageWrapper objMileageWrap = new mileageWrapper();
@@ -119,9 +119,9 @@ public with sharing class TimeandSummaryReportController {
             }
             objMileageWrap.tripDay = tripdateDayMap.get(currentDate);
             objMileageWrap.mileage = tripdateMileageMap.get(currentDate);
-            objMileageWrap.totaldrivingTime = Utils.ConvertMinuteToHours(Integer.valueOf(tripdateDrivingTimeMap.get(currentDate)));
-            objMileageWrap.totalStayTime = Utils.ConvertMinuteToHours(Integer.valueOf(tripStayTimeMap.get(currentDate)));
-            objMileageWrap.totalTime = Utils.ConvertMinuteToHours(Integer.valueOf(tripTotalTimeMap.get(currentDate)));
+            objMileageWrap.totaldrivingTime = (tripdateDrivingTimeMap.get(currentDate)).divide(60, 2);
+            objMileageWrap.totalStayTime = (tripStayTimeMap.get(currentDate)).divide(60, 2);
+            objMileageWrap.totalTime = (tripTotalTimeMap.get(currentDate)).divide(60, 2);
             if(totalMileges > 0 ){
                 totalMileges = totalMileges + objMileageWrap.mileage;
             } else {
@@ -131,18 +131,19 @@ public with sharing class TimeandSummaryReportController {
             mileageWrapperList.add(objMileageWrap);
         }
         System.debug('mileageWrapperList'+mileageWrapperList);
-        totalTimeForMonth = Utils.ConvertMinuteToHours(totalTimes); 
-        totalDriveTime = Utils.ConvertMinuteToHours(totalMinute);
-        totalStayTimeForMonth = Utils.ConvertMinuteToHours(totalStay);
+        
+        totalTimeForMonth = totalTimes > 0 ? (totalTimes).divide(60, 2) : 0 ;
+        totalDriveTime = totalMinute > 0 ? (totalMinute).divide(60, 2) : 0;
+        totalStayTimeForMonth = totalStay > 0 ? (totalStay).divide(60, 2) : 0;
     }
 
     public class mileageWrapper{
         public string tripDate { get; set; }
         public string tripDay { get; set; }
         public decimal mileage { get; set; }
-        public String totaldrivingTime { get; set; }
-        public String totalStayTime { get; set; }
-        public String totalTime { get; set; }
+        public decimal totaldrivingTime { get; set; }
+        public decimal totalStayTime { get; set; }
+        public decimal totalTime { get; set; }
         public mileageWrapper(){
         }
     }

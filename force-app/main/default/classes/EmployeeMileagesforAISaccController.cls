@@ -30,8 +30,7 @@ public with sharing class EmployeeMileagesforAISaccController {
         String endDate = ApexPages.currentPage().getParameters().get('endDate');
         milWrapList = new List<milWrapper>();
         Map<Id, Decimal> mileageMap = new Map<Id, Decimal>();
-        Map<Id, Decimal> fixedAmountMap = new Map<Id, Decimal>();
-        Map<Id, Decimal> totalVariAmountMap = new Map<Id, Decimal>();
+        Map<Id, Decimal> variableMap = new Map<Id, Decimal>();
         List<String> lastPaydateSplitted = new List<String>();
         system.debug('startDate=='+startDate);
         if((String.valueOf(startDate).contains('-'))) {
@@ -44,52 +43,73 @@ public with sharing class EmployeeMileagesforAISaccController {
                                         AND Trip_Date__c >= : Date.valueOf(startDate)
                                         AND Trip_Date__c <= : Date.valueOf(endDate)
                                         AND Trip_Status__c = 'Approved' 
+                                        AND EmployeeReimbursement__r.Contact_Id__r.Deactivated_Date__c = null 
+                                        AND EmployeeReimbursement__r.Contact_Id__r.Role__c != 'Admin' 
+                                        AND EmployeeReimbursement__r.Contact_Id__r.Role__c !='Manager' 
                                   AND Approved_Date__c != null group by EmployeeReimbursement__r.Contact_Id__c]) {
-            mileageMap.put((Id)ar.get('rid'), (Decimal) ar.get('rtotal')); 
-                                   
+            mileageMap.put((Id)ar.get('rid'), (Decimal) ar.get('rtotal'));    
         }
 
         for(Employee_Mileage__c objMil : [SELECT EmployeeReimbursement__r.Contact_Id__c,
                                                     EmployeeReimbursement__r.Fixed_Amount__c, 
-                                                    EmployeeReimbursement__r.Total_Variable_Rate__c
+                                                    EmployeeReimbursement__r.Total_Variable_Rate__c,
+                                                    EmployeeReimbursement__r.Variable_Rate__c
                                             FROM Employee_Mileage__c 
                                             WHERE   EmployeeReimbursement__r.Contact_Id__r.Account.Name = 'Advanced Inventory Solutions'
                                                     AND Trip_Date__c >= : Date.valueOf(startDate)
                                                     AND Trip_Date__c <= : Date.valueOf(endDate)
                                                     AND Trip_Status__c = 'Approved' 
-                                          AND Approved_Date__c != null]) {
-            if(objMil.EmployeeReimbursement__r.Fixed_Amount__c == null){
-                objMil.EmployeeReimbursement__r.Fixed_Amount__c = 0;
-            } 
-            fixedAmountMap.put(objMil.EmployeeReimbursement__r.Contact_Id__c,objMil.EmployeeReimbursement__r.Fixed_Amount__c); 
-            totalVariAmountMap.put(objMil.EmployeeReimbursement__r.Contact_Id__c,objMil.EmployeeReimbursement__r.Total_Variable_Rate__c);                                         
+                                            AND Approved_Date__c != null
+                                            AND EmployeeReimbursement__r.Contact_Id__r.Deactivated_Date__c = null 
+                                            AND EmployeeReimbursement__r.Contact_Id__r.Role__c != 'Admin' 
+                                            AND EmployeeReimbursement__r.Contact_Id__r.Role__c !='Manager' ]) {
+            variableMap.put(objMil.EmployeeReimbursement__r.Contact_Id__c,objMil.EmployeeReimbursement__r.Total_Variable_Rate__c);
         }
-        for(Contact currentContact : [SELECT id,Name,External_Email__c FROM Contact WHERE Account.Name = 'Advanced Inventory Solutions']){
-            Decimal monthlyVariableAmount;
-            if(totalVariAmountMap.containsKey(currentContact.Id) && mileageMap.containsKey(currentContact.Id)){
-                monthlyVariableAmount = totalVariAmountMap.get(currentContact.Id) * mileageMap.get(currentContact.Id);
-            } else {
-                monthlyVariableAmount = 0;
+        for(Contact currentContact : [SELECT id,Name,External_Email__c,Employee_ID__c 
+                                            FROM Contact 
+                                            WHERE Account.Name = 'Advanced Inventory Solutions'
+                                            AND Deactivated_Date__c = null
+                                            AND Role__c != 'Admin' 
+                                            AND Role__c !='Manager']) {
+            List<String> dateSplitted = new List<String>();
+            if(endDate != null && endDate.contains('-')){
+                dateSplitted = String.valueOf(endDate).split('-');
             }
             
             milWrapper objWrap = new milWrapper();
             objWrap.name = currentContact.Name;
             objWrap.email = currentContact.External_Email__c;
-            if(fixedAmountMap.containsKey(currentContact.Id)){
-                objWrap.TotalReim = (monthlyVariableAmount + fixedAmountMap.get(currentContact.Id)).setScale(2);
+            objWrap.employeeID = currentContact.Employee_ID__c;
+            if(!dateSplitted.isEmpty()){
+				objWrap.payperioddate = dateSplitted[1]+'/'+dateSplitted[2]+'/'+dateSplitted[0];
+            }
+            if(mileageMap.containsKey(currentContact.Id)){
+                objWrap.mileages = mileageMap.get(currentContact.Id);
             } else {
-                objWrap.TotalReim = (monthlyVariableAmount + 0).setScale(2);
+                objWrap.mileages = 0;
+            }
+            if(variableMap.containsKey(currentContact.Id)){
+                objWrap.variableRate = variableMap.get(currentContact.Id);
+            } else {
+                objWrap.variableRate = 0;
+            }
+            if(objWrap.mileages > 0 ){
+                objWrap.variableAmount = ((mileageMap.get(currentContact.Id) * objWrap.variableRate).setScale(2));
+            } else {
+                objWrap.variableAmount = 0;
             }
             milWrapList.add(objWrap);
         }
-     
     }
 
     public class milWrapper {
         public string name { get; set; }
+        public string employeeID { get; set; }
         public string email { get; set; }
-        //public string tripdate { get; set; }
-        public decimal TotalReim { get; set; }
+        public string payperioddate { get; set; }
+        public decimal mileages { get; set; }
+        public decimal variableRate { get; set; }
+        public decimal variableAmount { get; set; }
         public milWrapper(){}
     }
 }

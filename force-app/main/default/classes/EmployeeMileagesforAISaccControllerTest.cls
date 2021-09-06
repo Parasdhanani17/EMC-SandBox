@@ -5,10 +5,22 @@ public class EmployeeMileagesforAISaccControllerTest {
     @isTest
     public static void testMethod1(){
 
-        TriggerConfig__c cs = new TriggerConfig__c();
-        cs.ContactTriggersendEmailForNewContact__c=true;
-        cs.Name = 'Defaulttrigger';
-        insert cs;
+        TriggerConfig__c customEmailSetting =  new TriggerConfig__c();
+        customEmailSetting.Name = 'Defaulttrigger';
+        customEmailSetting.ContactTriggersendEmailForNewContact__c = true;
+        customEmailSetting.ContactTriCommunityReimCreate__c = true;
+        insert customEmailSetting;
+        
+         SendEmail__c customSetting =  new SendEmail__c();
+        customSetting.Name = 'Send Email For Compliance';
+        customSetting.Send_email_from_code__c= true;
+        insert customSetting;
+        
+        Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
+        veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
+        veh.vehicle__c = 'Mileage Rate';
+        veh.Year__c = '2019';
+        insert veh;
         
         Account acc = new Account();
         acc.Name = 'Advanced Inventory Solutions';
@@ -17,6 +29,8 @@ public class EmployeeMileagesforAISaccControllerTest {
         Contact con1 = new Contact();
         con1.AccountId = acc.Id;
         con1.LastName = 'testsdfsdfs';
+        con1.compliancestatus__c = 'Yes';
+        con1.Vehicle_Type__c = '2019 Mileage Rate';
         con1.External_Email__c = 'test.patel143478@gmail.com';
         con1.IsDeactivated__c = false;
         insert con1;  

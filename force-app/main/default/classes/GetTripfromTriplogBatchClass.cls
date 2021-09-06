@@ -103,7 +103,7 @@ global class GetTripfromTriplogBatchClass implements Database.Batchable<sObject>
        // Integer lastMonth,lastYear;
         String lastMonthDate;
         String lastdateofmonth;
-        Boolean putCall = true;
+        Boolean putCall = false;
         List<String> contactIdList = new List<String>();
 
         for(Contact currentContact : (List<Contact>) scope)

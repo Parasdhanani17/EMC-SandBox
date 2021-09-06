@@ -28,7 +28,7 @@ export default class FilterModalPopup extends LightningElement {
   }
   async downloadCSVFile() {
     this.spinnerLoad = true;
-    console.log(this.isExcelEmpty);
+    // console.log(this.isExcelEmpty);
     let exportList = await this.exportExcelByDateRange();
     if (!this.isExcelEmpty) {
       if (exportList.length > 0) {
@@ -140,7 +140,7 @@ export default class FilterModalPopup extends LightningElement {
 
  // To Date Change Event
   changeToHandler(event) {
-      console.log('inside change handler')
+      // console.log('inside change handler')
       this.calEndDate = validateDate(event.target.value);
       // const selectedFilterEndDate = new CustomEvent("handlefiltertodateevent", {
       //     detail: this.calEndDate

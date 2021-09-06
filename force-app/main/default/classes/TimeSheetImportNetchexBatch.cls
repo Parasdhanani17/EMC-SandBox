@@ -26,7 +26,7 @@ global class TimeSheetImportNetchexBatch implements Database.Batchable<sObject>,
     global Database.QueryLocator start(Database.BatchableContext BC) {
         String query;
         if(!Test.isRunningTest()){
-            query =  'SELECT id,Employee_Netchex_Id__c,Code__c FROM contact WHERE (Driver_Type__c = \'Driver - Full Time\' OR Driver_Type__c = \'Driver - Part Time\')AND AccountId = \''+System.Label.ERMI_Account+'\' AND Employee_Netchex_Id__c != null';
+            query =  'SELECT id,Employee_Netchex_Id__c,Code__c FROM contact WHERE (Driver_Type__c = \'Driver - Full Time\' OR Driver_Type__c = \'Driver - Part Time\')AND AccountId = \''+System.Label.ERMI_Account+'\' AND Employee_Netchex_Id__c != null AND Deactivated_Date__c = null';
         }
         else{
             query = 'SELECT id,Employee_Netchex_Id__c,Code__c FROM contact LIMIT 1';
@@ -43,6 +43,7 @@ global class TimeSheetImportNetchexBatch implements Database.Batchable<sObject>,
                                 WHERE (EmployeeReimbursement__r.Contact_Id__r.Driver_Type__c = 'Driver - Full Time' 
                                         OR EmployeeReimbursement__r.Contact_Id__r.Driver_Type__c = 'Driver - Part Time') 
                                         AND EmployeeReimbursement__r.Contact_Id__r.AccountId =: System.Label.ERMI_Account
+                                        AND EmployeeReimbursement__r.Contact_Id__r.Deactivated_Date__c = null
                                         AND Trip_Date__c >= : Date.valueOf(tripstartDate)
                                         AND Trip_Date__c <= : Date.valueOf(tripendDate) group by EmployeeReimbursement__r.Contact_Id__c]) {
                                 reimbTotalTimeMap.put((Id)ar.get('rid'), (Decimal) ar.get('rtotal')); 

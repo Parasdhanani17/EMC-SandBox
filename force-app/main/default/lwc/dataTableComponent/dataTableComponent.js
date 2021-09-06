@@ -10,7 +10,7 @@ import fetchMileagesSize from "@salesforce/apex/GetDriverData.fetchMileagesSize"
 import MileageDashboardMessage from '@salesforce/label/c.MileageDashboardMessage';
 import LwcDesignImage from "@salesforce/resourceUrl/LwcDesignImage";
 import updateMileages from '@salesforce/apex/GetDriverData.updateMileages';
-
+import updateMileagesEmail from '@salesforce/apex/GetDriverData.updateMileagesEmail';
 
 import {
   formatData,
@@ -19,16 +19,21 @@ import {
   excelFormatDate,
   changeKeyObjects
 } from 'c/commonLib';
-const recordsPerPage = [25, 50, 100, 250, 500];
+const recordsPerPage = [25, 50, 100, 200];
 export default class DataTableComponent extends LightningElement {
   ready = false;
   isRenderCallbackActionExecuted = true;
   isRowSplitterExcecuted = false;
   isPerPageActionExecuted = false;
-  isDisabled = false;
+  isClicked = false;
+  isNoteClicked = false;
+  isTagClicked = false;
   selectBool = false;
+  tableSpinner = false;
+  updatingText;
   rowLimit;
   rowOffSet = 0;
+  activity;
   @track mileageRowLimit;
   @track statusAppImg;
   @track statusRejImg;
@@ -64,6 +69,7 @@ export default class DataTableComponent extends LightningElement {
   ];
   @api accountID;
   @api contactID;
+  @api plID;
   @track record = {};
   @track wiredData = [];
   @track currentPage = 1;
@@ -101,6 +107,10 @@ export default class DataTableComponent extends LightningElement {
   searchDataLength = false;
   currentDataLength = false;
 
+  get disableClass() { 
+    return (this.accountID === this.plID) ? 'slds_input' : 'slds_input dimmed';
+  }
+
   @api getRowLimit() {
     var mileageRowLt = this.mileageRowLimit;
     // console.log("inside row limit", mileageRowLt);
@@ -108,8 +118,9 @@ export default class DataTableComponent extends LightningElement {
   }
   // Advance Search Based on lookups such as Date,Driver,Mileage etc
   @api getSearchData(value, isMailSend, dataLen, rLength) {
-    // console.log("Mileage Size: ", dataLen);
+  //  console.log("Mileage Size: ", dataLen);
     this.template.querySelector('.paginate').classList.remove('blur');
+    this.template.querySelector(".CheckUncheckAll").checked = false;
     if (isMailSend === 'trip deleted') {
       this.isSend = true;
       this.isloadingText = false;
@@ -129,7 +140,6 @@ export default class DataTableComponent extends LightningElement {
       this.loadingSpinner = true;
     }
     this.isRowSplitterExcecuted = false;
-    this.template.querySelector("div.tableContainer").classList.add('blur');
     this.searchallList = [];
     this.searchFlag = true;
     this.searchallList = value;
@@ -137,7 +147,6 @@ export default class DataTableComponent extends LightningElement {
       this.template.querySelector("c-paginator").classList.add("slds-hide");
     } else {
       this.template.querySelector("c-paginator").classList.remove("slds-hide");
-      this.totalrows = dataLen;
       // console.log(this.pageClick)
       if (!this.pageClick) {
         // console.log('inside paginator change')
@@ -146,7 +155,7 @@ export default class DataTableComponent extends LightningElement {
 
       // this.template.querySelector("c-paginator").pageData(value, this.pageSize);
     }
-
+    this.totalrows = dataLen;
     this.searchallList = this.defaultSortingByDate(
       this.searchallList,
       "ConvertedStartTime__c"
@@ -199,36 +208,41 @@ export default class DataTableComponent extends LightningElement {
       ".checkboxCheckUncheck"
     );
     if (this.searchData.length != 0) {
-      var i,
-        exportTripData = [],
-        j = checkbox.length;
+      var i,exportTripData = [],j = checkbox.length, searchCheckCount = 0;
       for (i = 0; i < j; i++) {
         if (checkbox[i].checked === true) {
+          searchCheckCount ++;
           if (this.searchData[i].id === checkbox[i].dataset.id) {
             exportTripData.push(excelData(this.searchData[i]));
-
           }
         }
         //formatted data for excel download
         this.exportSelectedData = exportTripData;
       }
+      if(searchCheckCount === 0){
+        const countSearchExcel = new CustomEvent("handlesearchcountexcel", {
+          detail: "Success"
+        })
+        this.dispatchEvent(countSearchExcel);
+      }
     } else {
-      var i,
-        exportTripData = [],
-
-
-        j = checkbox2.length;
-
+      var i,exportTripData = [],j = checkbox2.length, checkCount = 0;
       for (i = 0; i < j; i++) {
         if (checkbox2[i].checked === true) {
+          checkCount++;
           if (this.currentData[i].id === checkbox2[i].dataset.id) {
             exportTripData.push(excelData(this.currentData[i]));
-
           }
         }
 
         //formatted data for excel download
         this.exportSelectedData = exportTripData;
+      }
+      if(checkCount === 0){
+        const countExcel = new CustomEvent("handlecountexcel", {
+          detail: "Success"
+        })
+        this.dispatchEvent(countExcel);
       }
     }
 
@@ -254,9 +268,6 @@ export default class DataTableComponent extends LightningElement {
 
   // Apex Method Call For Default Data To Display in table
   @api apexMethodCall(isEmailSend, rowLimit, rowOffSet) {
-    //  setTimeout(() => {
-    /*console.log("rowLimit", rowLimit);
-    console.log("rowOffSet", rowOffSet);*/
     if (isEmailSend != undefined || isEmailSend != null) {
       if (isEmailSend === 'trip deleted') {
         this.isloadingText = false;
@@ -276,6 +287,9 @@ export default class DataTableComponent extends LightningElement {
 
     }
 
+    rowLimit = (rowLimit === null || rowLimit === undefined) ? this.rowLimit : rowLimit;
+    rowOffSet = (rowOffSet === null || rowOffSet === undefined) ? this.rowOffSet : rowOffSet;
+
     fetchMileages({
         accID: this.accountID,
         AdminId: this.contactID,
@@ -287,7 +301,7 @@ export default class DataTableComponent extends LightningElement {
           this.wiredData = [];
         }
         this.wiredData = data;
-        // console.log('From fetch mileage', data);
+        console.log('From fetch mileage', data);
 
         // console.log('%c fetchMileages data length : %d', 'display: inline-block ; background-color: #e0005a ; color: #ffffff ; font-weight: bold ; padding: 3px 7px 3px 7px ; border-radius: 3px 3px 3px 3px ;', this.wiredData.length);
         this.setRecordsToDisplay();
@@ -308,7 +322,7 @@ export default class DataTableComponent extends LightningElement {
         this.dataSize = parseInt(data);
         this.template.querySelector("c-paginator").defaultPageSize(this.dataSize, this.pageSize);
         this.totalrows = this.dataSize;
-        // console.log("mileage data size", this.dataSize);
+        //console.log("mileage data size", this.dataSize);
       })
       .catch((error) => {
         console.log(error);
@@ -336,6 +350,11 @@ export default class DataTableComponent extends LightningElement {
     this.template.querySelector(".todatalistcomponent").deleteSelectedOption();
   }
 
+  handleInlineEvent(event){
+   // console.log(event.detail);
+    this.isClicked = true;
+    this.activity = event.detail;
+  }
   // On click event of each row in table
   clickHandler(event) {
     // console.log('inside click handler',event);
@@ -428,6 +447,7 @@ export default class DataTableComponent extends LightningElement {
     //get data for 'To' Dropdown list as selected option
     this.tolocation = targetRow[7].textContent;
 
+    //console.log("Activity: ", targetRow[10].textContent);
 
     // Show map component on click of each row in table
 
@@ -436,6 +456,18 @@ export default class DataTableComponent extends LightningElement {
       .querySelector(`c-map-creation-component[data-id="${targetId}"]`)
       .mapAccess();
 
+    if(targetRow[10].textContent != ''){
+      this.template
+      .querySelector(`c-inline-dropdown[data-id="${targetId}"]`)
+      .showOption();
+    }
+    
+    if(targetRow[8].textContent != ''){
+      this.template.querySelector(
+        `.tags_Input[data-id="${targetId}"]`
+      ).value = targetRow[8].textContent;
+    }
+   // console.log("inline-dropdown", this.template.querySelector(`c-inline-dropdown[data-id="${targetId}"]`));
     // Pass Stored Data to child component functions Starts -->
 
     let datetimeComponent = this.template.querySelectorAll(
@@ -456,45 +488,127 @@ export default class DataTableComponent extends LightningElement {
     // To get data inside each row based on targetRow Ends -->
   }
 
+  handleTextAreaInput(event){
+    this.isNoteClicked = true;
+    let tId = event.currentTarget.dataset.id;
+    let txtList = this.template.querySelector(
+      `textarea[data-id="${tId}"]`
+    );
+    txtList.value = event.target.value;
+   // nList.value = event.target.value;
+  }
+
   handleTagInput(event) {
+    this.isTagClicked = true;
     let tId = event.currentTarget.dataset.id;
     let rList = this.template.querySelector(
-      `[data-id="${tId}"],.tags_Input`
+      `.tags_Input[data-id="${tId}"]`
     );
     rList.value = event.target.value;
   }
+
+ 
+
   // Accordion Save  Button click event
   handleSave(event) {
-    var tripID, tagName;
-    let tId = event.currentTarget.dataset.id;
-    let rList = this.template.querySelector(
-      `[data-id="${tId}"],.tags_Input`
-    );
-    tripID = tId;
-    tagName = rList.value;
-    updateMileages({
-        tripId: tripID,
-        tripTag: tagName
-      })
-      .then((data) => {
-        // console.log("updateMileages List", data);
-        if (data) {
-          // console.log("inside list element")
-          this.handlecloselookUp(event, tId, tagName)
-          const saveEvent = new CustomEvent("handleupdateevent", {
-            detail: data
-          })
-          this.dispatchEvent(saveEvent);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    var tripID, tagName, activity, note, textList, rTagList,conEmail, tripDate, conName, oldActivity, actualMileage, mileage, chMileage, tripLogApi, tripLogId;
+    if(this.isClicked === true || this.isNoteClicked === true || this.isTagClicked === true) {
+      this.tableSpinner = true;
+      this.updatingText = "Updating....";
+      let tId = event.currentTarget.dataset.id;
+      rTagList = this.template.querySelector(
+        `.tags_Input[data-id="${tId}"]`
+      );
+      textList = this.template.querySelector(
+        `textarea[data-id="${tId}"]`
+      );
+      tripID = tId;
+      tagName = (rTagList.value === undefined) ? '' : rTagList.value;
+      note = (textList.value === undefined) ? '' : textList.value;
+      activity = (this.activity === undefined || this.activity === '') ? null : this.activity;
+      conEmail = event.currentTarget.dataset.email;
+      tripDate = event.currentTarget.dataset.trip;
+      conName = event.currentTarget.dataset.name;
+      oldActivity = event.currentTarget.dataset.old;
+      actualMileage = (event.currentTarget.dataset.actual === undefined) ? 0 : event.currentTarget.dataset.actual;
+      mileage = (event.currentTarget.dataset.mileage === undefined || event.currentTarget.dataset.mileage === null) ? 0 : event.currentTarget.dataset.mileage;
+      tripLogApi = (event.currentTarget.dataset.log === undefined) ? null : event.currentTarget.dataset.log;
+      tripLogId = (event.currentTarget.dataset.tripid === undefined) ? null : event.currentTarget.dataset.tripid;
+      const itemIndex = event.currentTarget.dataset.index;
+      const listOfData = (this.searchData.length != 0 ) ? this.searchData[itemIndex] : this.currentData[itemIndex];
+      listOfData.Tags = (this.isTagClicked === true) ? tagName : listOfData.Tags;
+      listOfData.Notes = (this.isNoteClicked === true) ? note : listOfData.Notes;
+      listOfData.Activity =  (this.isClicked === true) ? activity : listOfData.Activity;
+    
+      updateMileages({
+          tripId: tripID,
+          tripTag: tagName,
+          activity: activity,
+          notes: note
+        })
+        .then((data) => {
+          // console.log("updateMileages List", data);
+          if (data) {
+            // console.log("inside list element")
+            const saveEvent = new CustomEvent("handleupdateevent", {
+              detail: data
+            })
+            this.dispatchEvent(saveEvent);
+            if(this.isClicked){
+              chMileage = this.calculate(activity, actualMileage);
+              // console.log("updated mileage->", chMileage);
+              updateMileagesEmail({
+                adminId: this.contactID,
+                tripdate: tripDate,
+                conName: conName,
+                conEmail: conEmail,
+                oldActivity: oldActivity,
+                newActivity: activity,
+                mileage: mileage,
+                actualMileage: actualMileage,
+                tripId: tripLogId,
+                accApi: tripLogApi
+              }).then((data) =>{
+                // console.log("updateMileagesEmail",data);
+                this.isClicked = false;
+                listOfData.Mileage = chMileage;
+              })
+              this.template.querySelector(`.mileageInput[data-id="${tId}"]`).inputValue = chMileage;
+              this.handlecloselookUp(event, tId)
+              this.tableSpinner = false;
+            }else{
+              this.tableSpinner = false;
+              this.handlecloselookUp(event, tId)
+            }
+            this.isNoteClicked = false;
+            this.isTagClicked = false;
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+    //  console.log("save event: ", this.isClicked, this.isNoteClicked, this.isTagClicked);
+   
+    // console.log("save event: ", event.currentTarget.dataset.name);
+    // console.log("save event: ", event.currentTarget.dataset.old);
+    // console.log("save event: ", event.currentTarget.dataset.actual);
+    // console.log("save event: ", event.currentTarget.dataset.mileage);
   }
 
+  calculate(newActivity, actualMileage) {
+    let tripMileage;
+    if (newActivity == 'Commute' && actualMileage >= 30) {
+      tripMileage = actualMileage - 30;
+    } else if (newActivity == 'Commute') {
+      tripMileage = 0;
+    } else if (newActivity == 'Business') {
+      tripMileage = actualMileage;
+    }
+    return tripMileage;
+  }
   // Click event to close opened row
-  handlecloselookUp(event, uId, tag) {
-    // console.log('inside list');
+  handlecloselookUp(event, uId) {
     var i, j;
     let targetId;
     if (uId != undefined) {
@@ -525,21 +639,6 @@ export default class DataTableComponent extends LightningElement {
         }
       } else if (closerow.className === "content") {
         if (targetId === closerow.dataset.id) {
-          // console.log(closerow);
-          if (tag != undefined) {
-            if (closerow.previousElementSibling) {
-              closerow.previousElementSibling.style.backgroundColor = "#f7cb4d";
-              setTimeout(() => {
-                if (closerow.previousElementSibling.className.includes("even")) {
-                  closerow.previousElementSibling.style.backgroundColor = "#ffffff";
-                } else if (closerow.previousElementSibling.className.includes("odd")) {
-                  closerow.previousElementSibling.style.backgroundColor = "#f7f7f7";
-                }
-              }, 3000);
-              closerow.previousElementSibling.cells[8].innerText = tag;
-            }
-          }
-
           if (closerow.style.display === "table-row")
             closerow.style.display = "none";
           else closerow.style.display = "table-row";
@@ -604,7 +703,9 @@ export default class DataTableComponent extends LightningElement {
         } else if (header === "Tags") {
           keyName = "Tags";
         } else if (header === "Notes") {
-          keyName = "notes";
+          keyName = "Notes";
+        } else if (header === "Activity") {
+          keyName = "Activity";
         }
       }
       if (!this.reverse) {
@@ -614,7 +715,8 @@ export default class DataTableComponent extends LightningElement {
           keyName === "TripOrigin" ||
           keyName === "TripDestination" ||
           keyName === "Tags" ||
-          keyName === "notes"
+          keyName === "Notes" || 
+          keyName === "Activity"
         ) {
           if (this.searchData.length != 0) {
             this.searchData.sort(function (a, b) {
@@ -767,7 +869,8 @@ export default class DataTableComponent extends LightningElement {
           keyName === "TripOrigin" ||
           keyName === "TripDestination" ||
           keyName === "Tags" ||
-          keyName === "notes"
+          keyName === "Notes" || 
+          keyName === "Activity"
         ) {
           if (this.searchData.length != 0) {
             this.searchData.sort(function (a, b) {
@@ -925,19 +1028,18 @@ export default class DataTableComponent extends LightningElement {
     if (!this.loadingSpinner) {
       this.loadingSpinner = true;
     }
-    setTimeout(() => {
-      this.template.querySelector("div.tableContainer").classList.remove('blur');
+   setTimeout(() => {
       this.loadingSpinner = false;
       this.isloadingText = false;
       if (this.pageClick) {
         this.pageClick = false;
       }
-    }, 100);
+    }, 400);
     this.searchData = [];
     var mileagecount = 0;
     this.totalmileage = 0;
-    //  console.log(this.searchallList)
-    this.searchData = formatData(this.searchallList);
+    //console.log(this.searchallList)
+    this.searchData = formatData(this.searchallList, this.plID, this.accountID);
     if (this.searchData.length != 0) {
       this.searchData.forEach((value) => {
         mileagecount = mileagecount + parseFloat(value.Mileage);
@@ -949,9 +1051,6 @@ export default class DataTableComponent extends LightningElement {
 
       this.totalmileage = mileagecount;
     }
-
-
-
   }
 
   validateState(stateVal) {
@@ -979,7 +1078,7 @@ export default class DataTableComponent extends LightningElement {
     let page = event.detail;
     this.rowOffSet = page;
     this.rowOffSet = (this.rowOffSet - 1) * this.rowLimit
-
+    this.template.querySelector(".CheckUncheckAll").checked = false;
     if (this.searchData.length != 0) {
       // console.log("inside row action", this.rowOffSet)
       const rowAction = new CustomEvent("rowactionevent", {
@@ -1012,7 +1111,7 @@ export default class DataTableComponent extends LightningElement {
     }
 
     setTimeout(() => {
-      this.loadingSpinner = false;
+     this.loadingSpinner = false;
       this.isloadingText = false;
       if (this.pageClick) {
         this.pageClick = false;
@@ -1030,7 +1129,7 @@ export default class DataTableComponent extends LightningElement {
     apexData = JSON.parse(JSON.stringify(this.wiredData));
     //apexData = this.defaultSortingByDate(apexData, "ConvertedStartTime__c");
     // this.totalrows = apexData.length;
-    this.currentData = formatData(apexData);
+    this.currentData = formatData(apexData, this.plID, this.accountID);
 
     // console.log('Modified', this.currentData);
     if (this.currentData.length != 0) {
@@ -1056,7 +1155,7 @@ export default class DataTableComponent extends LightningElement {
     this.isPerPageActionExecuted = true;
     this.isRowSplitterExcecuted = false;
     this.rowLimit = pageEntry;
-
+    this.template.querySelector(".CheckUncheckAll").checked = false;
     if (this.searchData.length != 0) {
       this.rowOffSet = 0;
       const perPageAction = new CustomEvent("perpageactionevent", {
@@ -1250,20 +1349,47 @@ export default class DataTableComponent extends LightningElement {
   // Send formatted excel data to child component 'c-excel-sheet'
   xlsFormatter(data) {
     let Header = Object.keys(data[0]);
-    Header[5] = "Start Time";
-    Header[6] = "End Time";
-    Header[7] = "Stay Time";
-    Header[8] = "Drive Time";
-    Header[9] = "Total Time";
-    Header[11] = "Mileage (mi)";
-    Header[12] = "From Location Name";
-    Header[13] = "From Location Address";
-    Header[14] = "To Location Name";
-    Header[15] = "To Location Address";
-    Header[19] = "Tracking Method";
-    this.xlsHeader.push(Header);
-    this.xlsData.push(data);
-    this.template.querySelector("c-excel-sheet").download();
+    if(Header.includes("ActualMileage")){
+      Header[5] = "Start Time";
+      Header[6] = "End Time";
+      Header[7] = "Stay Time";
+      Header[8] = "Drive Time";
+      Header[9] = "Total Time";
+      Header[11] = "Actual Mileage";
+      Header[12] = "Mileage (mi)";
+      Header[13] = "From Location Name";
+      Header[14] = "From Location Address";
+      Header[15] = "To Location Name";
+      Header[16] = "To Location Address";
+      Header[20] = "Tracking Method";
+    }else{
+      Header[5] = "Start Time";
+      Header[6] = "End Time";
+      Header[7] = "Stay Time";
+      Header[8] = "Drive Time";
+      Header[9] = "Total Time";
+      Header[11] = "Mileage (mi)";
+      Header[12] = "From Location Name";
+      Header[13] = "From Location Address";
+      Header[14] = "To Location Name";
+      Header[15] = "To Location Address";
+      Header[19] = "Tracking Method";
+    }
+    
+    if(this.xlsHeader.length > 0){
+      this.xlsHeader = [];
+      this.xlsHeader.push(Header);
+    }else{
+      this.xlsHeader.push(Header);
+    }
+    if(this.xlsData.length > 0){
+      this.xlsData = [];
+      this.xlsData.push(data);
+    }else{
+      this.xlsData.push(data);
+    }
+    //console.log("from data table",this.xlsData);
+    this.template.querySelector("c-excel-sheet").download(this.xlsHeader, this.xlsData);
   }
 
   // function to format date with week day
@@ -1336,7 +1462,7 @@ export default class DataTableComponent extends LightningElement {
     var extraRow = table.insertRow(rowElem.rowIndex);
     extraRow.className = "extra_row";
     var cell = extraRow.insertCell(0);
-    cell.setAttribute("colspan", "10");
+    cell.setAttribute("colspan", "11");
     cell.style["padding"] = "0px";
     cell.style["line-height"] = "0px";
     cell.innerHTML =

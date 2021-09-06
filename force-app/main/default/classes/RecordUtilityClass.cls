@@ -209,6 +209,7 @@ public with sharing class RecordUtilityClass
                 empMil.EndTime__c =null;
                 empMil.Day_Of_Week__c ='';
                 empMil.Destination_Name__c='';
+                empMil.Activity__c = 'Business';
                 obj_Employee_Mileage_list.add(empMil);
             }
         }
@@ -572,7 +573,7 @@ public with sharing class RecordUtilityClass
                     EmployeeReimbursement__r.Total_Pending__c,EmployeeReimbursement__r.Monthly_Variable_Amount__c,
                     EmployeeReimbursement__r.Contact_Id__r.External_Email__c,EmployeeReimbursement__r.Total_Rejected__c,
                     EmployeeReimbursement__r.Total_Mileage__c,Notes__c,ConvertedStartTime__c,Stay_Time__c,
-                    Driving_Time__c,Total_Time__c,Tag__c 
+                    Driving_Time__c,Total_Time__c,Tag__c,Activity__c 
                 FROM Employee_Mileage__c];
     } 
     public static List<EmployeeMileages> getallEmployeeMileages(List<Employee_Mileage__c> obj_list_Employee_Mileage)

@@ -1,6 +1,7 @@
 @isTest
 public class DriverDashboardController_test {
     public static testmethod void DriverDashboardControllerTestMethod() {
+        List<IRS_Mileage_Rate__c> obj_IRS_Mileage_Rate =  RecordUtilityClass.insertIrsRate();
         RecordUtilityClass.createRecordsAdminDashboardController();
         Contact obj_admin_contact = RecordUtilityClass.getAdminContact();
         Account obj_acc = RecordUtilityClass.getAccount();

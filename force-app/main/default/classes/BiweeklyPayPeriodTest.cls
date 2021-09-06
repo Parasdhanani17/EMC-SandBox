@@ -88,5 +88,8 @@ public class BiweeklyPayPeriodTest {
         insert emp;
 
         BiweeklyPayPeriod.getTimeAndAttendance(con.Id, '2021');
+        BiweeklyPayPeriod.getBiweeklyMileage(con.Id, 2021);
+        BiweeklyPayPeriod.getMileages1(system.today()-1, system.today(), con.Id);
+       BiweeklyPayPeriod.ApproveTrips(system.today()-1, system.today(), con.Id);
     }
 }

@@ -26,7 +26,7 @@ public with sharing class EmployeeReimbursementTriggerHandlerTest {
 
         Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
         veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
-        veh.vehicle__c = 'Full-Size Vehicle';
+        veh.vehicle__c = 'Mileage Rate';
         veh.Year__c = '2019';
         insert veh;
 
@@ -47,6 +47,7 @@ public with sharing class EmployeeReimbursementTriggerHandlerTest {
         con.Fixed_Amount__c = 371.28;
         con.MailingCity = 'Fremont';
         con.MailingState = 'CA';
+        con.Vehicle_Type__c = '2019 Mileage Rate';
         con.Monthly_Mileage_Limit__c = 100.00;
         insert con;
         Contact con2 = new Contact();
@@ -92,7 +93,7 @@ public with sharing class EmployeeReimbursementTriggerHandlerTest {
         con5.Monthly_Mileage_Limit__c = 101.00;
         con5.Manager__c = con4.Id;
         con5.Role__c = 'Driver/Manager';
-        con5.Vehicle_Type__c = '2019 Full-Size Vehicle';
+        con5.Vehicle_Type__c = '2019 Mileage Rate';
         insert con5;
         Contact con6 = new Contact();
         con6.FirstName = 'SixthCont';
@@ -104,13 +105,13 @@ public with sharing class EmployeeReimbursementTriggerHandlerTest {
         con6.MailingState = 'CA';
         con6.Monthly_Mileage_Limit__c = 101.00;
         con6.Manager__c = con5.Id;
-        con6.Vehicle_Type__c = '2019 Full-Size Vehicle';
+        con6.Vehicle_Type__c = '2019 Mileage Rate';
         con6.Role__c = 'Driver';
         insert con6;
         Test.startTest();
         //List<Employee_Reimbursement__c> empList = new List<Employee_Reimbursement__c>();
         Map<id,Employee_Reimbursement__c> oldmap = new Map<id,Employee_Reimbursement__c>();
-		Map<id,Employee_Reimbursement__c> newmap = new Map<id,Employee_Reimbursement__c>();
+        Map<id,Employee_Reimbursement__c> newmap = new Map<id,Employee_Reimbursement__c>();
         Employee_Reimbursement__c er = new Employee_Reimbursement__c();
         er.Contact_Id__c = con.Id;
         er.Name = 'Reimbersment Test';

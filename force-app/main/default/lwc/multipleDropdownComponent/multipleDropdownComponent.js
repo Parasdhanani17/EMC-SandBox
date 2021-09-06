@@ -185,7 +185,7 @@ export default class MultipleDropdownComponent extends LightningElement {
         const targetEvent = new CustomEvent("handleselectevent", {
             detail: targetname
         });
-
+     
         this.dispatchEvent(targetEvent);
     }
 

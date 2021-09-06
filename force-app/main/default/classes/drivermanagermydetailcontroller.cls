@@ -126,7 +126,7 @@ public with sharing class drivermanagermydetailcontroller {
     public static String getDriverDetailsClone(String contactid)
     {
             
-     for(Contact currentContact : [Select id,Name,MailingPostalCode,MailingState,MailingCity,Fixed_Amount__c,compliancestatus__c,Car_Image__c,Accountid,Account.Name,Account.Logo_Document_Id__c,Vehicle_Type__c,Insurance_Attachment_Id__c from Contact where id=:contactid])
+     /*for(Contact currentContact : [Select id,Name,MailingPostalCode,MailingState,MailingCity,Fixed_Amount__c,compliancestatus__c,Car_Image__c,Accountid,Account.Name,Account.Logo_Document_Id__c,Vehicle_Type__c,Insurance_Attachment_Id__c from Contact where id=:contactid])
         {
             contactDataAsString = String.escapeSingleQuotes(currentContact.Name);
             
@@ -148,8 +148,16 @@ public with sharing class drivermanagermydetailcontroller {
             newContact.Insurance_Attachment_Id__c = currentContact.Insurance_Attachment_Id__c;
             obj_currect_contact.add(newContact);
         }
-                
-        return JSON.serialize(obj_currect_contact).unescapeHtml4();
+        */     
+        obj_currect_contact = [SELECT id, Name, MailingPostalCode, MailingState, MailingCity,Driver_Type__c, 
+                                        Fixed_Amount__c, compliancestatus__c, Car_Image__c, Account.Name, Account.Logo_Document_Id__c, 
+                                        Vehicle_Type__c,Insurance_Attachment_Id__c, Account.Triplog_API__c, Email,
+                                        Maintenance__c,Tires__c, Insurance_Rate__c, License_Ragistration__c, Taxes__c,
+                                        Depreciation__c, Total_Monthly_Costs__c, Business_Use__c
+                                    FROM Contact 
+                                    WHERE id =: contactid];
+        //return JSON.serialize(obj_currect_contact).unescapeHtml4();
+        return JSON.serialize(obj_currect_contact ).unescapeHtml4();
     }
     public static String getDriverGasPrice(String MailingState,String MailingCity)
     {   
@@ -185,7 +193,7 @@ public with sharing class drivermanagermydetailcontroller {
          return  WrapperUtils.readFromFileInchunk(attachmentBody,attachmentName,attachmentId,did,accid,contactattachementid); 
     }  
 
-    //AI-000587	
+    //AI-000587 
     @RemoteAction
     public static List<BiweeklyPayPeriod.TimeAttedanceWrap> TimeAttendance(String conId,String year){
         return BiweeklyPayPeriod.getTimeAndAttendance(conId,year);
@@ -195,5 +203,23 @@ public with sharing class drivermanagermydetailcontroller {
     public static String getMileagesBasedTandAtt(String startdate,String enddate,String did)
     {
         return String.escapeSingleQuotes(WrapperUtils.getMileagesBasedTA(startdate,enddate,did));
+    } 
+
+    @RemoteAction
+    public static List<BiweeklyPayPeriod.BiweeklyWrap> biweeklyMileage(String conId,Integer year){
+        return BiweeklyPayPeriod.getBiweeklyMileage(conId,year);
+    }
+
+    @RemoteAction
+    public static List<String> getBiweekMileages(string startdate,string enddate,String did)
+    {
+        return BiweeklyPayPeriod.getMileages1(date.valueof(startdate),date.valueof(enddate),did);
+    } 
+
+    @RemoteAction
+    public static string ApproveBiweekMileages(string startdate,string enddate,String did)
+    {
+        BiweeklyPayPeriod.ApproveTrips(date.valueof(startdate),date.valueof(enddate),did);
+        return 'sucess';
     } 
 }

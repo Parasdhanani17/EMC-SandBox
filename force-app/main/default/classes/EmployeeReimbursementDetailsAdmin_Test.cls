@@ -13,5 +13,6 @@ Public class EmployeeReimbursementDetailsAdmin_Test{
         obj.isSelected = true;
         obj.managerName = 'Doris';
         obj.isSelectedEmailReminder = true;
+        obj.reimbursementApproval = true;
     }
 }

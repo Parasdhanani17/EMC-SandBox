@@ -52,6 +52,8 @@ global class GetDailyTripsFromTriplog implements Database.Batchable<sObject>,Dat
         String lastMonth='';
         String startMonthDate = String.valueOf(System.today()-1);
         String lastMonthDate = String.valueOf(System.today());
+        //String startMonthDate = '2021-05-01';
+        //String lastMonthDate = '2021-05-03';
         Boolean putCall = false;
         List<String> contactIdList = new List<String>();
         for(Contact currentContact : (List<Contact>) scope) {

@@ -130,7 +130,7 @@ global class ChangeTripStatusinTripLog implements Database.Batchable<sObject>, D
 
                 if(emailConfig != null && emailConfig.Send_email_to_me__c ) {
                     body = BuildBody( 'Approved', approveReimwithTripIdMap.get(reim.id));
-                    triplogsList.add(
+                    /*triplogsList.add(
                         callPutApi(
                             String.valueOf(reim.Contact_Id__r.Account.Triplog_API__c),
                             body,
@@ -138,7 +138,7 @@ global class ChangeTripStatusinTripLog implements Database.Batchable<sObject>, D
                             reim.id,
                             approveReimwithTripIdMap.get(reim.id).size()
                         )
-                    );
+                    );*/
                 }
                 
                 List<Employee_Mileage__c> mileagesToUpdate = UpdateMileages(approveReimbursmentMap.get(reim.id),'Approved');

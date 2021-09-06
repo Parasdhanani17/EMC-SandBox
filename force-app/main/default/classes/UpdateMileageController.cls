@@ -26,8 +26,10 @@ public with sharing class UpdateMileageController {
     /*public  Integer selected_Item                       {get; set;}*/
     public String messageView                           {get; set;}
     public String message                               {get; set;}
+    public String jsonSubset                            {get; set;}
     
     public UpdateMileageController() {
+    jsonSubset = '';
         reimbursementId  = ApexPages.currentPage().getParameters().get('id');
         try {
             empReimbursement = [SELECT Id,
@@ -142,7 +144,8 @@ public with sharing class UpdateMileageController {
                                        Fuel_price__c,
                                        MPG__c,
                                        Maintenance_and_Tires__c,
-                                       EmployeeReimbursement__c
+                                       EmployeeReimbursement__c,
+                                       Activity__c
                                   FROM Employee_Mileage__c
                                  WHERE EmployeeReimbursement__r.Id =: reimbursementId
                                  LIMIT :list_Size
@@ -177,6 +180,7 @@ public with sharing class UpdateMileageController {
                 singleMileage.mileage.Approved_Date__c = (mileage.Approved_Date__c != null) ? mileage.Approved_Date__c : singleMileage.mileage.Approved_Date__c;
                 singleMileage.mileage.Mileage__c = (mileage.Mileage__c != null) ? mileage.Mileage__c : singleMileage.mileage.Mileage__c;
                 singleMileage.mileage.Trip_Status__c = (mileage.Trip_Status__c != null) ? mileage.Trip_Status__c : singleMileage.mileage.Trip_Status__c;
+                singleMileage.mileage.Activity__c = (mileage.Activity__c != null) ? mileage.Activity__c : singleMileage.mileage.Activity__c;
                 singleMileage.mileage.MPG__c         = (mileage.MPG__c != null) ? mileage.MPG__c : singleMileage.mileage.MPG__c;
                 singleMileage.mileage.Maintenance_and_Tires__c  = (mileage.Maintenance_and_Tires__c != null) ? mileage.Maintenance_and_Tires__c : singleMileage.mileage.Maintenance_and_Tires__c;
                 singleMileage.mileage.Fuel_price__c = empReimbursement.Fuel_Price__c;
@@ -191,6 +195,52 @@ public with sharing class UpdateMileageController {
         PageReference page = new PageReference('/apex/Update_Mileages?id='+empReimbursement.Id);
         page.setRedirect(true);
         return page;
+    }
+    
+     public void putHTTP() {
+       
+        String apiToken;
+        String MLOGACCOUNT = System.Label.Triplog_New_URL;
+        Set<Integer> trip_IDs = new Set<Integer>();
+        List<Employee_Reimbursement__c> reimList = [SELECT id,Contact_Id__r.Account.Triplog_API__c FROM Employee_Reimbursement__c where id =: reimbursementId ];
+        if(reimList.size() > 0) {
+            apiToken = reimList[0].Contact_Id__r.Account.Triplog_API__c;
+        }
+        for(MileageWrapper singleMileage : mileageWrapper) {
+            if(singleMileage.isSelected == true) {
+                System.debug('==='+singleMileage.mileage.Trip_Id__c);
+                trip_IDs.add(Integer.valueof(singleMileage.mileage.Trip_Id__c));
+            }
+        }
+        HttpRequest putReq = new HttpRequest();
+        Http putHTTP = new Http();
+        String body = '{"status":"Not Submitted","ids":[';
+        String part = '';
+            for (Integer i : trip_IDs) {
+            part += String.valueof(i) + ',';
+        }
+        part = part.removeEnd(',');
+        body += part +']}';
+        String endPoint = !MLOGACCOUNT.Contains(apiToken) ? StaticValues.TRIPLOG_BASEURL : StaticValues.MLOG_BASEURL;
+        endPoint += StaticValues.STATUS_SUFFIX;
+        putReq.setEndpoint(endPoint);
+        putReq.setMethod('PUT');                 
+        putReq.setBody(body);
+        putReq.setTimeout(120000);
+        putReq.setHeader('Authorization', 'apikey ' + apiToken);
+        try {
+            if(!Test.isRunningTest()){
+                HttpResponse putRes = putHTTP.send(putReq);
+                Map<String,Object> jsonMap = (Map<String, Object>)JSON.deserializeUntyped(putRes.getBody());
+                jsonSubset = JSON.serialize(jsonMap.get('message'));
+            }
+        } catch(System.CalloutException er) {
+
+        }
+        System.debug('==='+trip_IDs);
+        ApexPages.addmessage(new ApexPages.message(ApexPages.severity.CONFIRM,'Succesfully change status of trip to unsubmitteed'));
+       
+        //return jsonSubset;
     }
 
     public void setCookie() {

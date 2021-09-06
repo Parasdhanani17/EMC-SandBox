@@ -79,7 +79,7 @@ export default class MapCreationComponent extends LightningElement {
         apikey: this.tripLogApi
       });
       var apiJSON = JSON.parse(result);
-      var resultArray = apiJSON.routes;
+      var resultArray = (apiJSON != null ) ? apiJSON.routes : [];
       // console.log('apiCall->', resultArray);
       if (resultArray.length > 25) {
         resultArray = resultArray.slice(0, 25);

@@ -3,10 +3,10 @@ trigger EmployeeReimbursementTrigger on Employee_Reimbursement__c (after update,
         EmployeeReimbursementTriggerHandler.populateFields(Trigger.New);
     }else*/
     SendEmail__c sendCustomSet = SendEmail__c.getValues('EmployeeReimbursementTrigger');
-    system.debug('isUpdate=='+Trigger.isUpdate);
+    
         
     if(Trigger.isUpdate && (checkRecursive.runOnce() || Test.isRunningTest())) {
-        system.debug('inside trigger');
+       
         EmployeeReimbursementTriggerHandler.mileagefieldupdate(Trigger.New, Trigger.oldMap, Trigger.newMap);
         
         //AI-000436 start
@@ -16,22 +16,27 @@ trigger EmployeeReimbursementTrigger on Employee_Reimbursement__c (after update,
                 sendMailReimbursMap.put(reimb.Id,reimb);
             }
         }
-         system.debug('sendMailReimbursMap =='+sendMailReimbursMap ); 
-         system.debug('sendMailReimbursMap size =='+sendMailReimbursMap.size()); 
+       
         if(sendMailReimbursMap.size() > 0 && sendCustomSet != null && sendCustomSet.Send_email_from_code__c == true){
             EmployeeReimbursementTriggerHandler.updateStatusMail(sendMailReimbursMap);
         }
     }
+
     if(Trigger.isInsert && Trigger.isAfter && sendCustomSet != null && sendCustomSet.Send_email_from_code__c == true){
         Map<Id,Employee_Reimbursement__c>  sendMailEmpReimbursMap = new  Map<Id,Employee_Reimbursement__c>();
+        Set<Id> reimIds = new Set<Id>();
         for(Employee_Reimbursement__c reimb:Trigger.New){
+            reimIds.add(reimb.ID);
             if(reimb.Status__c == 'Approved'){
                 sendMailEmpReimbursMap.put(reimb.Id,reimb);
             }
         }
-        system.debug('sendMailEmpReimbursMap size=='+sendMailEmpReimbursMap.size());
+      
         if(sendMailEmpReimbursMap.size() > 0){
             EmployeeReimbursementTriggerHandler.updateStatusMail(sendMailEmpReimbursMap);
+        }
+        if(!reimIds.isEmpty()) {
+            EmployeeReimbursementTriggerHandler.updateFuelMpgPrice(reimIds);
         }
     } //AI-000436 end
     

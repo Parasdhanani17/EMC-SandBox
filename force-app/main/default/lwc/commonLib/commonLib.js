@@ -22,7 +22,7 @@ const isValidForm = (elements) => {
         return isFormValid;
 };
 
-const formatData = (data) => {
+const formatData = (data, pID, aID) => {
     var  tripData = [];
     data.forEach((row) => {
         var dayOfWeek;
@@ -39,7 +39,10 @@ const formatData = (data) => {
         let enTime = TimeFormat(row.ConvertedEndTime__c);
         rowData.id = row.Id;
         rowData.TripId = row.Trip_Id__c;
-        rowData.Mileage = (row.Mileage__c === undefined) ? '' : row.Mileage__c.toString();
+        rowData.Mileage = (row.Mileage__c === undefined) ? 0 : row.Mileage__c.toString();
+        if(pID === aID){
+          rowData.ActualMileage = (row.EMP_Mileage__c === undefined) ? 0 : row.EMP_Mileage__c.toString();
+        }
         rowData.TripOrigin = row.Trip_Origin__c;
         rowData.TripDestination = row.Trip_Destination__c;
         if (row.Trip_Destination__c != undefined) {
@@ -58,6 +61,7 @@ const formatData = (data) => {
         rowData.ToLocation = row.Destination_Name__c;
         rowData.Day = dayOfWeek;
         rowData.userdate = userDate.toString();
+        rowData.tripDate = (row.Trip_Date__c === undefined) ? '' : row.Trip_Date__c;
         rowData.StartTime = strTime.toString();
         rowData.EndTime = enTime.toString();
         rowData.Date = formatDate.toString();
@@ -68,7 +72,8 @@ const formatData = (data) => {
           enTime.toString() :
           strTime.toString() + " " + "-" + " " + enTime.toString();
         rowData.Tags = (row.Tag__c === undefined) ? '' : row.Tag__c;
-        rowData.notes = (row.Notes__c === undefined) ? '' : row.Notes__c; 
+        rowData.Notes = (row.Notes__c === undefined) ? '' : row.Notes__c; 
+        rowData.Activity = (row.Activity__c === undefined) ? '' : row.Activity__c;
         rowData.DriveTime = (row.Driving_Time__c === undefined) ? '' : row.Driving_Time__c;
         rowData.StayTime = (row.Stay_Time__c === undefined) ? '' : row.Stay_Time__c;
         rowData.TotalTime = (row.Drive_Stay_Time__c === undefined) ? '' : row.Drive_Stay_Time__c;
@@ -112,7 +117,10 @@ const excelData = (exlData) => {
    exportData.StayTime = exlData.StayTime,
    exportData.DriveTime = exlData.DriveTime,
    exportData.TotalTime = exlData.TotalTime,
-   exportData.Activity = "Business",
+   exportData.Activity = exlData.Activity
+   if(exlData.ActualMileage != undefined){
+    exportData.ActualMileage = exlData.ActualMileage
+   }
    exportData.Mileage = exlData.Mileage,
    exportData.FromLocationName = exlData.FromLocation,
    exportData.FromLocationAddress = exlData.TripOrigin,
@@ -120,7 +128,7 @@ const excelData = (exlData) => {
    exportData.ToLocationAddress = exlData.TripDestination,
    exportData.State = exlData.State,
    exportData.Tags = exlData.Tags,
-   exportData.Notes = exlData.notes,
+   exportData.Notes = exlData.Notes,
    exportData.TrackingMethod = exlData.TrackingMethod
   return exportData;
 }
@@ -138,7 +146,7 @@ const changeKeyObjects = (csvData) => {
   replaceKey["Stay Time"] = excel.StayTime;
   replaceKey["Drive Time"] = excel.DriveTime;
   replaceKey["Total Time"] = excel.TotalTime;
-  replaceKey["Activity"] = "Business";
+  replaceKey["Activity"] = excel.Activity;
   replaceKey["Mileage (mi)"] = excel.Mileage;
   replaceKey["From Location Name"] = excel.FromLocation;
   replaceKey["From Location Address"] = excel.TripOrigin;
@@ -146,7 +154,7 @@ const changeKeyObjects = (csvData) => {
   replaceKey["To Location Address"] = excel.TripDestination;
   replaceKey["State"] = excel.State;
   replaceKey["Tags"] = excel.Tags;
-  replaceKey["Notes"] = excel.notes;
+  replaceKey["Notes"] = excel.Notes;
   replaceKey["Tracking Method"] = excel.TrackingMethod;
   filterCSVData.push(replaceKey);
 
@@ -171,6 +179,30 @@ const validateDate=(dob)=>{
   var yy = date.getFullYear();
   var dateModified = mm + "/" + dd + "/" + yy;
   return dateModified;
+}
+
+const dateTypeFormat =(dt)=>{
+  var tDate = dt;
+  var td = new Date(tDate);
+  var tdd = td.getDate();
+  var tmm = td.getMonth() + 1;
+  var tyy = td.getFullYear();
+  tdd = (tdd < 10) ? ('0' + tdd) : tdd;
+  tmm = (tmm < 10) ? ('0' + tmm) : tmm;
+  var dateReturn = tmm + "-" + tyy;
+  return dateReturn;
+}
+
+const yearMonthDate = (ydt) => {
+  var yearDate = ydt;
+  var yd = new Date(yearDate);
+  var ydd = yd.getDate();
+  var ymm = yd.getMonth() + 1;
+  var yyy = yd.getFullYear();
+  ydd = (ydd < 10) ? ('0' + ydd) : ydd;
+  ymm = (ymm < 10) ? ('0' + ymm) : ymm;
+  var yearDateReturn = yyy + "-" + ymm + "-" + ydd;
+  return yearDateReturn;
 }
    // function to format date with week day
   const fullDateFormat=(rowObj) => {
@@ -247,5 +279,7 @@ export
     validateDate,
     formatData, 
     excelFormatDate,
-    changeKeyObjects
+    changeKeyObjects,
+    dateTypeFormat,
+    yearMonthDate
 }

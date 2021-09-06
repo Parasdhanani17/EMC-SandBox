@@ -47,7 +47,7 @@ global class StaticValues
     public final static String EMAIL_FAIL = 'Failed';
 
     public static Boolean isFirstTime = true;
-   
+    public static Boolean isFirTime = true;
     // This Value used EmployeeReimbursementTriggerHandler class Line No:- 77
     //This value is used in MappingGasPriceTrigger for check the reimbursement status Approved or not in EmployeeReimbursementTriggerHandler class.
     public static Boolean isCalledFromReimTri = true;

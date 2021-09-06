@@ -18,7 +18,8 @@ global class UpdateEmpReimFuelPrice {
                                                   Contact_Id__r.MailingState,Contact_Id__r.MailingCity FROM 
                                                   Employee_Reimbursement__c WHERE (fuel_price__c = null OR fuel_price__c = 0.0) AND 
                                                   contact_email__c != null AND Contact_Id__r.MailingState != null 
-                                                  AND Contact_Id__r.MailingCity != null AND month__c =: reimMonth]) {
+                                                  AND Contact_Id__r.MailingCity != null AND month__c =: reimMonth
+                                                  AND Contact_Id__r.Account.Name != 'GPS (General Production Service)']) {
             String city = reimbers.City_State__c.right(2);
             cityNames.add(reimbers.City_State__c.left(reimbers.City_State__c.length() - 3).trim());
             i++;

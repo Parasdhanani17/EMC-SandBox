@@ -6,7 +6,12 @@ Description : Test calss for UpdateEmpReimFuelPrice
 @isTest
 public class UpdateEmpReimFuelPriceTest {
     public static testMethod Void updateFuelPriceTestMethod() {
-
+        TriggerConfig__c customEmailSetting =  new TriggerConfig__c();
+        customEmailSetting.Name = 'Defaulttrigger';
+        customEmailSetting.ContactTriggersendEmailForNewContact__c = true;
+        customEmailSetting.ContactTriCommunityReimCreate__c = true;
+        insert customEmailSetting;
+        
         Account account = new Account();
         account.name = 'Test Account';
         insert account;

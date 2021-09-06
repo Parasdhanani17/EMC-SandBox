@@ -12,8 +12,19 @@ public class GetTripfromTriplogBatchClassTest {
         
         SendEmailToMe__c sendEmail = new SendEmailToMe__c();
         sendEmail.Name = 'GetTripCallOutApprovePutCall';
-		sendEmail.Send_email_to_me__c = true;
+        sendEmail.Send_email_to_me__c = true;
         insert sendEmail;
+        
+        Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
+        veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
+        veh.vehicle__c = 'Mileage Rate';
+        veh.Year__c = '2019';
+        insert veh;
+        
+        SendEmail__c customSetting1 =  new SendEmail__c();
+        customSetting1.Name = 'Send Email For Compliance';
+        customSetting1.Send_email_from_code__c= true;
+        insert customSetting1;
         
         Get_Trip_Date_Settings__c obj_Get_Trip_Date_Settings = new Get_Trip_Date_Settings__c();
         obj_Get_Trip_Date_Settings.Name ='Date Settings';
@@ -35,6 +46,7 @@ public class GetTripfromTriplogBatchClassTest {
         contact.Email = 'minkesh.patel1478@gmail.com';
         contact.isCommunityUser__c = true;
         contact.MailingCity='ahmedabad';
+        contact.Vehicle_Type__c = '2019 Mileage Rate';
         contact.MailingState='GJ';
         insert contact;
         contactids.add(contact.Id);
@@ -45,6 +57,7 @@ public class GetTripfromTriplogBatchClassTest {
         con.External_Email__c = 'minkesh.patel1357@gmail.com';
         con.Email = 'minkesh.patel1357@gmail.com';
         con.Triplog_Status__c = 'U';
+        con.Vehicle_Type__c = '2019 Mileage Rate';
         con.isCommunityUser__c = true;
         insert con;
         contactids.add(con.Id);
@@ -89,10 +102,21 @@ public class GetTripfromTriplogBatchClassTest {
         customSetting.MappingGasPriceTrigger__c = true;
         insert customSetting;
         
+        Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
+        veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
+        veh.vehicle__c = 'Mileage Rate';
+        veh.Year__c = '2019';
+        insert veh;
+        
         SendEmailToMe__c sendEmail = new SendEmailToMe__c();
         sendEmail.Name = 'GetTripCallOutApprovePutCall';
-		sendEmail.Send_email_to_me__c = true;
+        sendEmail.Send_email_to_me__c = true;
         insert sendEmail;
+        
+        SendEmail__c customSetting1 =  new SendEmail__c();
+        customSetting1.Name = 'Send Email For Compliance';
+        customSetting1.Send_email_from_code__c= true;
+        insert customSetting1;
         
         Account acc = new Account();           
         acc.Name = 'Delta account';
@@ -107,6 +131,7 @@ public class GetTripfromTriplogBatchClassTest {
         contact.Email = 'minkesh.patel1478@gmail.com';
         contact.isCommunityUser__c = true;
         contact.MailingCity='ahmedabad';
+        contact.Vehicle_Type__c = '2019 Mileage Rate';
         contact.MailingState='GJ';
         insert contact;
         contactids.add(contact.Id);
@@ -117,6 +142,7 @@ public class GetTripfromTriplogBatchClassTest {
         con.External_Email__c = 'minkesh.patel1357@gmail.com';
         con.Email = 'minkesh.patel1357@gmail.com';
         con.Triplog_Status__c = 'A';
+        con.Vehicle_Type__c = '2019 Mileage Rate';
         con.isCommunityUser__c = true;
         insert con;
         contactids.add(con.Id);
@@ -160,9 +186,20 @@ public class GetTripfromTriplogBatchClassTest {
         customSetting.MappingGasPriceTrigger__c = true;
         insert customSetting;
         
+        SendEmail__c customSetting1 =  new SendEmail__c();
+        customSetting1.Name = 'Send Email For Compliance';
+        customSetting1.Send_email_from_code__c= true;
+        insert customSetting1;
+        
+        Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
+        veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
+        veh.vehicle__c = 'Mileage Rate';
+        veh.Year__c = '2019';
+        insert veh;
+        
         SendEmailToMe__c sendEmail = new SendEmailToMe__c();
         sendEmail.Name = 'GetTripCallOutApprovePutCall';
-		sendEmail.Send_email_to_me__c = true;
+        sendEmail.Send_email_to_me__c = true;
         insert sendEmail;
          
         Account acc = new Account();           
@@ -177,6 +214,7 @@ public class GetTripfromTriplogBatchClassTest {
         contact.External_Email__c = 'minkesh.patel1478@gmail.com';
         contact.Email = 'minkesh.patel1478@gmail.com';
         contact.isCommunityUser__c = true;
+        contact.Vehicle_Type__c = '2019 Mileage Rate';
         contact.MailingCity='ahmedabad';
         contact.MailingState='GJ';
         insert contact;
@@ -188,6 +226,7 @@ public class GetTripfromTriplogBatchClassTest {
         con.External_Email__c = 'minkesh.patel1357@gmail.com';
         con.Email = 'minkesh.patel1357@gmail.com';
         con.Triplog_Status__c = 'S';
+        con.Vehicle_Type__c = '2019 Mileage Rate';
         con.isCommunityUser__c = true;
         insert con;
         contactids.add(con.Id);
@@ -233,9 +272,20 @@ public class GetTripfromTriplogBatchClassTest {
         
         SendEmailToMe__c sendEmail = new SendEmailToMe__c();
         sendEmail.Name = 'GetTripCallOutApprovePutCall';
-		sendEmail.Send_email_to_me__c = true;
+        sendEmail.Send_email_to_me__c = true;
         insert sendEmail;
-         
+        
+        SendEmail__c customSetting1 =  new SendEmail__c();
+        customSetting1.Name = 'Send Email For Compliance';
+        customSetting1.Send_email_from_code__c= true;
+        insert customSetting1;
+        
+        Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
+        veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
+        veh.vehicle__c = 'Mileage Rate';
+        veh.Year__c = '2019';
+        insert veh;
+        
         Account acc = new Account();           
         acc.Name = 'Delta account';
         acc.Triplog_API__c = '123456789';
@@ -249,7 +299,9 @@ public class GetTripfromTriplogBatchClassTest {
         contact.Email = 'minkesh.patel1478@gmail.com';
         contact.isCommunityUser__c = true;
         contact.MailingCity='ahmedabad';
+        contact.Vehicle_Type__c = '2019 Mileage Rate';
         contact.MailingState='GJ';
+        contact.compliancestatus__c = 'Yes';
         insert contact;
         contactids.add(contact.Id);
         
@@ -260,7 +312,9 @@ public class GetTripfromTriplogBatchClassTest {
         con.Email = 'minkesh.patel1357@gmail.com';
         con.Triplog_Status__c = 'U';
         con.isCommunityUser__c = true;
+        con.Vehicle_Type__c = '2019 Mileage Rate';
         con.MailingCity='ahmedabad';
+        con.compliancestatus__c = 'Yes';
         con.MailingState='GJ';
         insert con;
         contactids.add(con.Id);

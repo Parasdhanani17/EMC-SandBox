@@ -140,10 +140,13 @@ public with sharing class AdminManagerDriverDashboardController
     {
             
         //List<contact> obj_currect_contact = new List<contact>();
-        obj_currect_contact = [SELECT Id, Name, MailingPostalCode, MailingState, MailingCity,
-                                        Fixed_Amount__c, compliancestatus__c, Car_Image__c, 
-                                        Account.Name, Account.Logo_Document_Id__c, Vehicle_Type__c 
-                                    FROM Contact 
+        obj_currect_contact = [SELECT id,Name,MailingPostalCode,MailingState,MailingCity,
+                                            Driver_Type__c,Fixed_Amount__c,compliancestatus__c,Car_Image__c,
+                                            Accountid,Account.Name,Account.Logo_Document_Id__c,
+                                            Vehicle_Type__c,Insurance_Attachment_Id__c,Maintenance__c,Tires__c,
+                                            Insurance_Rate__c, License_Ragistration__c, Taxes__c,
+                                            Depreciation__c, Total_Monthly_Costs__c, Business_Use__c 
+                                        FROM Contact  
                                     WHERE Id =: getDriverid()];
         return String.escapeSingleQuotes(JSON.serialize(obj_currect_contact));
     }
@@ -202,7 +205,7 @@ public with sharing class AdminManagerDriverDashboardController
         WrapperUtils.UpdateReimbursementStatus(empReID);
     }
 
-    //AI-000587	
+    //AI-000587 
     @RemoteAction
     public static List<BiweeklyPayPeriod.TimeAttedanceWrap> TimeAttendance(String conId,String year){
         return BiweeklyPayPeriod.getTimeAndAttendance(conId,year);
@@ -213,5 +216,21 @@ public with sharing class AdminManagerDriverDashboardController
     {
         return String.escapeSingleQuotes(WrapperUtils.getMileagesBasedTA(startdate,enddate,did));
     } 
+    @RemoteAction
+    public static List<BiweeklyPayPeriod.BiweeklyWrap> biweeklyMileage(String conId,Integer year){
+        return BiweeklyPayPeriod.getBiweeklyMileage(conId,year);
+    }
 
+    @RemoteAction
+    public static List<String> getBiweekMileages(string startdate,string enddate,String did)
+    {
+        return BiweeklyPayPeriod.getMileages1(date.valueof(startdate),date.valueof(enddate),did);
+    } 
+
+    @RemoteAction
+    public static string ApproveBiweekMileages(string startdate,string enddate,String did)
+    {
+        BiweeklyPayPeriod.ApproveTrips(date.valueof(startdate),date.valueof(enddate),did);
+        return 'sucess';
+    } 
 }

@@ -15,19 +15,20 @@ public with sharing class TimeSheetReportControllerTest {
         insert customSetting1;
         
         daylight_saving_time_config__c customSetting2 =  new daylight_saving_time_config__c();
-        customSetting2.Name = '2020';
+        customSetting2.Name = '2021';
         customSetting2.Start_Date__c = System.today();
         customSetting2.End_Date__c = System.today() + 60;
         insert customSetting2;
 
         Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
         veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
-        veh.vehicle__c = 'Full-Size Sedan';
+        veh.vehicle__c = 'Mileage Rate';
         veh.Year__c = '2019';
         insert veh;
         
-        Account acc = new Account();           
-        acc.Name = 'Delta account';
+        Account acc = new Account();  
+        acc.Name = 'test account';
+        acc.Vehicle_Types__c = veh.name;
         acc.Triplog_API__c = '123456789';
         Acc.Triplog_Status__c = 'U';
         insert Acc;
@@ -35,7 +36,7 @@ public with sharing class TimeSheetReportControllerTest {
         Contact contact = new Contact();
         contact.lastname = 'Test Contact';
         contact.AccountId = System.Label.ERMI_Account;
-        contact.Vehicle_Type__c = '2019 Full-Size Sedan';
+        contact.Vehicle_Type__c = '2019 Mileage Rate';
         contact.External_Email__c = 'minkesh.patel1478@gmail.com';
         contact.Time_Zone__c = 'America/Chicago';
         contact.MailingCity = 'Abilene';

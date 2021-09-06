@@ -20,6 +20,7 @@ public class DriverDashboardController
     public Integer obj_driverpacket_attachMVRsize {get;set;}
     public static Boolean showlastyear {get;set;}
     public static String logoDocument_id {get;set;}
+    public static decimal TotalMonthlyCosts {get; set;}
     /**
     @author Natavar Ghodasara
     @date 26th Feb 2019
@@ -132,9 +133,16 @@ public class DriverDashboardController
     @RemoteAction
     public static String getDriverDetailsClone(String contactid)
     {            
-        List<contact> driverDataList = new List<contact>();
+        /*List<contact> driverDataList = new List<contact>();
 
-        for(Contact currentContact : [Select id,Name,MailingPostalCode,MailingState,MailingCity,Driver_Type__c,Fixed_Amount__c,compliancestatus__c,Car_Image__c,Accountid,Account.Name,Account.Logo_Document_Id__c,Vehicle_Type__c,Insurance_Attachment_Id__c from Contact where id=:contactid])
+        for(Contact currentContact : [SELECT id,Name,MailingPostalCode,MailingState,MailingCity,
+                                            Driver_Type__c,Fixed_Amount__c,compliancestatus__c,Car_Image__c,
+                                            Accountid,Account.Name,Account.Logo_Document_Id__c,
+                                            Vehicle_Type__c,Insurance_Attachment_Id__c,Maintenance__c,Tires__c,
+                                            Insurance_Rate__c, License_Ragistration__c, Taxes__c,
+                                            Depreciation__c, Total_Monthly_Costs__c, Business_Use__c 
+                                        FROM Contact 
+                                        WHERE id=:contactid])
         {
             contactDataAsString = String.escapeSingleQuotes(currentContact.Name);
             
@@ -155,10 +163,27 @@ public class DriverDashboardController
             newContact.Vehicle_Type__c = currentContact.Vehicle_Type__c;
             newContact.Insurance_Attachment_Id__c = currentContact.Insurance_Attachment_Id__c;
             newContact.Driver_Type__c = currentContact.Driver_Type__c;
+            newContact.Maintenance__c = currentContact.Maintenance__c;
+            newContact.Tires__c = currentContact.Tires__c;
+            newContact.Insurance_Rate__c = currentContact.Insurance_Rate__c;
+            newContact.License_Ragistration__c = currentContact.License_Ragistration__c;
+            newContact.Taxes__c = currentContact.Taxes__c;
+            newContact.Depreciation__c = currentContact.Depreciation__c;
+            newContact.Business_Use__c = currentContact.Business_Use__c ;
+            TotalMonthlyCosts = currentContact.Total_Monthly_Costs__c;
             driverDataList.add(newContact);
         }
                 
-        return JSON.serialize(driverDataList).unescapeHtml4();
+        return JSON.serialize(driverDataList).unescapeHtml4();*/
+        List<contact> driverDataList = new List<contact>();
+        driverDataList = [SELECT id, Name, MailingPostalCode, MailingState, MailingCity,Driver_Type__c, 
+                                        Fixed_Amount__c, compliancestatus__c, Car_Image__c, Account.Name, Account.Logo_Document_Id__c, 
+                                        Vehicle_Type__c,Insurance_Attachment_Id__c, Account.Triplog_API__c, Email,
+                                        Maintenance__c,Tires__c, Insurance_Rate__c, License_Ragistration__c, Taxes__c,
+                                        Depreciation__c, Total_Monthly_Costs__c, Business_Use__c
+                                    FROM Contact 
+                                    WHERE id =: contactid];
+        return JSON.serialize(driverDataList ).unescapeHtml4();
     }
     @RemoteAction
     public static List<String> getMileages(String clickedMonth,String year,String did)
@@ -191,7 +216,7 @@ public class DriverDashboardController
         return String.escapeSingleQuotes(JSON.serialize((List<Attachment>)ExecuteQueryUtil.getRecordListFromsObject(query)));
     }
     
-    //AI-000587	
+    //AI-000587 
     @RemoteAction
     public static List<BiweeklyPayPeriod.TimeAttedanceWrap> TimeAttendance(String conId,String year){
         return BiweeklyPayPeriod.getTimeAndAttendance(conId,year);
@@ -201,5 +226,17 @@ public class DriverDashboardController
     public static String getMileagesBasedTandAtt(String startdate,String enddate,String did)
     {
         return String.escapeSingleQuotes(WrapperUtils.getMileagesBasedTA(startdate,enddate,did));
+    } 
+    
+    @RemoteAction
+    public static List<BiweeklyPayPeriod.BiweeklyWrap> biweeklyMileage(String conId,Integer year){
+        return BiweeklyPayPeriod.getBiweeklyMileage(conId,year);
+    }
+
+    @RemoteAction
+    public static List<String> getBiweekMileages(string startdate,string enddate,String did)
+    {
+        return BiweeklyPayPeriod.getMileages1(date.valueof(startdate),date.valueof(enddate),did);
+       //return null;
     } 
 }

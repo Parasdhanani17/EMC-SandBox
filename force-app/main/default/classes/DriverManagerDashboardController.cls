@@ -118,73 +118,61 @@ public class DriverManagerDashboardController
         return String.escapeSingleQuotes(WrapperUtils.getUnapprovedReimbursements(did,accid,boolean.valueOf(showTeamRecord),'Driver/Manager'));
     }    
     @RemoteAction    
-    public static List<String> approveReimbursements(String reimbursements,String did,String accid,String showTeamRecord,String updateThreshold)
+    public static AsyncApexJob approveReimbursements(String reimbursements,String did,String accid,String showTeamRecord,String updateThreshold)
     {
         List<String> updatedlist = new List<String>();
         if(updateThreshold!=null && String.isNotBlank(updateThreshold))
         {            
             WrapperUtils.updateContactThresholdLimit(updateThreshold);
         }
-        if(reimbursements!=null && String.isNotBlank(reimbursements))
-        {
-            WrapperUtils.updateReimbursements(reimbursements);
-        }                         
-        updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,showTeamRecord));
-        updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,showTeamRecord));
-        return updatedlist;
-        
+        // if(reimbursements!=null && String.isNotBlank(reimbursements))
+        // {
+        //     WrapperUtils.updateReimbursements(reimbursements);
+        // }                         
+        // updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,showTeamRecord));
+        // updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,showTeamRecord));
+        // return updatedlist;
+        ApproveReimBatch tripBtc = new ApproveReimBatch(reimbursements);
+		ID batchprocessid = Database.executeBatch(tripBtc,1);
+        AsyncApexJob aaj = [SELECT Id, Status,ExtendedStatus, JobItemsProcessed, TotalJobItems, NumberOfErrors 
+                    FROM AsyncApexJob WHERE ID =: batchprocessid ];
+
+		return aaj;
+    }
+    @RemoteAction
+    public static String CheckBatchStatus(ID batchprocessid){
+        AsyncApexJob aaj = [SELECT Id, Status,ExtendedStatus, JobItemsProcessed, TotalJobItems, NumberOfErrors 
+                    FROM AsyncApexJob WHERE ID =: batchprocessid ];
+        if(aaj.Status == 'Failed'){
+            return aaj.Status+'='+aaj.ExtendedStatus; 
+        }
+		return aaj.Status;
     }
 
     @RemoteAction
-    public static List<String> approveMileagesClone(String mileages, String did, String accid,String showTeamRecord)
+    public static List<String> UpdatedReimList(String did,String accid,String showTeamRecord){
+        List<String> updatedlist = new List<String>();
+        updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,showTeamRecord));
+        updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,showTeamRecord));
+        return updatedlist;
+    }
+    @RemoteAction
+    public static AsyncApexJob approveMileagesClone(String mileages, String did, String accid,String showTeamRecord)
     {
         List<String> updatedlist = new List<String>();
+        AsyncApexJob aaj;
         if(mileages!=null)
         {
-            /*mileages=WrapperUtils.replaceAllJson(mileages);
-            List<ReimbursementAndMileages> employeeReimbursementList = new List<ReimbursementAndMileages>();
-            employeeReimbursementList = ReimbursementAndMileages.parse(mileages);            
-            List<Employee_Reimbursement__c> reimbursementList = new List<Employee_Reimbursement__c>(); 
-            Set<String> reimbursementIdSet = new Set<String>();
-
-            if(employeeReimbursementList.size()>0)
-            {
-                for(ReimbursementAndMileages currentReimbursement : employeeReimbursementList)
-                {
-                    if(currentReimbursement.mileagesList!=null)
-                    {
-                        for(ReimbursementAndMileages.MileagesList currentMileage : currentReimbursement.mileagesList)
-                        {
-                            reimbursementIdSet.add(currentMileage.Employee_Reimbursement);
-                        }
-                    }
-                    
-                }   
-                if(reimbursementIdSet.size() > 0) {
-                    for(String reimbursementId : reimbursementIdSet) {
-                        Employee_Reimbursement__c currentReimbursement = new Employee_Reimbursement__c();
-                        currentReimbursement.id= String.valueOf(reimbursementId);
-                        currentReimbursement.Status__c = 'Approved';
-                        currentReimbursement.Approved_Date__c = System.today();
-                        reimbursementList.add(currentReimbursement);
-                    }   
-                }
-
-                if(reimbursementList.size()>0)
-                {
-                    update reimbursementList;
-                    updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,showTeamRecord));
-                    updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,showTeamRecord));
-                    return updatedlist;
-                   
-                }                
-             }*/
-             WrapperUtils.approveMileagesClone1(mileages);
-             updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,showTeamRecord));
-             updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,showTeamRecord));
-             return updatedlist;
+            //  WrapperUtils.approveMileagesClone1(mileages);
+            //  updatedlist.add(getAllDriversLastMonthUpdatedReimbursements(did,accid,showTeamRecord));
+            //  updatedlist.add(getAllDriversLastMonthUpdatedUnapprovedReimburseClone(did,accid,showTeamRecord));
+            //  return updatedlist;
+            ApproveReimBatch tripBtc = new ApproveReimBatch(mileages);
+             ID batchprocessid = Database.executeBatch(tripBtc,1);
+             aaj = [SELECT Id, Status,ExtendedStatus, JobItemsProcessed, TotalJobItems, NumberOfErrors 
+                                     FROM AsyncApexJob WHERE ID =: batchprocessid ];
         }       
-        return null;
+        return aaj;
 
     }
 

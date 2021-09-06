@@ -113,4 +113,7 @@ public with sharing class EmployeeDetails
     public string department {get;set;}
     public string deptDesign {get;set;}
     public String deactivationBy {get;set;}
+    public string deptPL {get;set;}
+    public string divison {get;set;}
+    
 }

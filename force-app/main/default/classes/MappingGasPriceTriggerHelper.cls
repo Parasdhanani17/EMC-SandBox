@@ -17,6 +17,10 @@ public without sharing class MappingGasPriceTriggerHelper{
             if(currentMileage.Stay_Time__c != 0 && (currentMileage.Tag__c == 'Admin' || currentMileage.Tag__c == 'admin')){
                 currentMileage.Stay_Time__c = 0;
             }
+            
+            if(currentMileage.Stay_Time__c != 0 && currentMileage.Origin_Name__c != null && currentMileage.Destination_Name__c != null && ((currentMileage.Origin_Name__c).toUppercase() == 'HOME' && (currentMileage.Destination_Name__c).toUppercase() == 'HOME' )){
+                currentMileage.Stay_Time__c = 0;
+            }
         }
         for(Employee_Reimbursement__c currentReimbursement : [Select id,Contact_Id__r.Time_Zone__c from Employee_Reimbursement__c where id IN: reimIds])
         {
@@ -70,7 +74,7 @@ public without sharing class MappingGasPriceTriggerHelper{
 
     public static void TrackHistory(Map<ID,Employee_Mileage__c> mileageOld,List<Employee_Mileage__c> mileageNew){
 
-        list<AuditTrail__c> newAuditTrialCreate=new list<AuditTrail__c>();
+        /*list<AuditTrail__c> newAuditTrialCreate=new list<AuditTrail__c>();
         for(Employee_Mileage__c objMil : mileageNew) {
             if(objMil.id == mileageOld.get(objMil.id).id) {
                 if(objMil.Trip_Status__c != mileageOld.get(objMil.id).Trip_Status__c)
@@ -80,6 +84,27 @@ public without sharing class MappingGasPriceTriggerHelper{
             }
             if(newAuditTrialCreate.Size() > 0)
             upsert newAuditTrialCreate; 
+        }*/
+        Map<ID,Employee_Mileage__c> oldMileageMap = new Map<ID,Employee_Mileage__c>();
+        //Map<ID,Employee_Mileage__c> newMileageMap = new Map<ID,Employee_Mileage__c>();
+        list<Employee_Mileage__c> oldMilList= new list<Employee_Mileage__c>();
+        //list<Employee_Mileage__c> newMilList = new list<Employee_Mileage__c>();
+        
+        for(Employee_Mileage__c objMil : mileageNew) {
+            if(objMil.id == mileageOld.get(objMil.id).id) {
+                if((objMil.Trip_Status__c != mileageOld.get(objMil.id).Trip_Status__c) || (objMil.Approved_Date__c != mileageOld.get(objMil.Id).Approved_Date__c)) {
+                    oldMilList.add(mileageOld.get(objMil.id));
+                    //newMilList.add(objMil);
+                    //UpdateTrackHistory objbatch = new UpdateTrackHistory(mileageOld,mileageNew);
+                    //Database.executeBatch(objbatch,200);
+                }
+            }
+        }
+        if(oldMilList.size() > 0 ){
+            oldMileageMap.putall(oldMilList);
+            //newMileageMap.putall(newMilList);
+            UpdateTrackHistory objbatch = new UpdateTrackHistory(oldMileageMap,mileageNew);
+            Database.executeBatch(objbatch,100);
         }
     }
 
@@ -141,6 +166,45 @@ public without sharing class MappingGasPriceTriggerHelper{
         }
         if(!emToUpdate.isEmpty()){
             update emToUpdate;
+        }
+    }
+    //This method is used for deduction of 30 miles from first and last trip of the day on PL marketing account.
+    public static void updateMileages(List<Employee_Mileage__c> mileagesList){
+        set<Id> reimbursementIdsSet = new set<Id>();
+        List<datetime> tripList = new List<datetime>();
+        map<id,Employee_Mileage__c> milmap = new map<id,Employee_Mileage__c>();
+        List<datetime> tripListPLStart = new List<datetime>();
+        List<datetime> tripListPLEnd = new List<datetime>();
+        List<Employee_Mileage__c> mileageList = new List<Employee_Mileage__c>();
+        for(Employee_Mileage__c empmilege : mileagesList) {
+            reimbursementIdsSet.add(empmilege.EmployeeReimbursement__c); 
+        }
+        if(!reimbursementIdsSet.isEmpty() && StaticValues.isFirTime ){
+            StaticValues.isFirTime = false; 
+            for(AggregateResult objReim : [select MIN(ConvertedStartTime__c) from Employee_Mileage__c where EmployeeReimbursement__c =: reimbursementIdsSet  group by Trip_Date__c ]){
+                tripListPLStart.add((Datetime)objReim.get('expr0'));
+            }
+            for(AggregateResult objReim : [select Max(ConvertedEndTime__c) from Employee_Mileage__c where EmployeeReimbursement__c =: reimbursementIdsSet  group by Trip_Date__c ]){
+                tripListPLEnd.add((Datetime)objReim.get('expr0'));
+            }
+            for(Employee_Mileage__c objMil : [SELECT id,ConvertedStartTime__c,Stay_Time__c,Mileage__c,EMP_Mileage__c 
+                                                FROM Employee_Mileage__c 
+                                                WHERE (ConvertedStartTime__c In : tripListPLStart 
+                                                    OR ConvertedEndTime__c In : tripListPLEnd ) 
+                                                    AND EmployeeReimbursement__c In : reimbursementIdsSet 
+                                                    AND EmployeeReimbursement__r.Contact_Id__r.Account.Name = 'PL Marketing']){
+                system.debug('=='+objMil.ConvertedStartTime__c);
+                if(objMil.EMP_Mileage__c > 30) {
+                                objMil.Mileage__c = objMil.EMP_Mileage__c - 30;
+                } else {
+                        objMil.Mileage__c = 0;
+                }
+                mileageList.add(objMil);
+            }
+            milmap.putall(mileageList);
+            if(milmap.size()>0){
+                update milmap.values();
+            }
         }
     }
 }

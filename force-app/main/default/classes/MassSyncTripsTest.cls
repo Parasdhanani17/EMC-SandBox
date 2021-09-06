@@ -4,6 +4,12 @@ public class MassSyncTripsTest {
         List<Id> contactids = new List<Id>();
         Map<Id, Employee_Reimbursement__c> conReim = new Map<Id, Employee_Reimbursement__c>();
         
+        Vehicle_URL_Mapping__c veh = new Vehicle_URL_Mapping__c();
+        veh.URL__c = 'https://cdn2.hubspot.net/hubfs/2511299/iStock-494093356.jpg';
+        veh.vehicle__c = 'Mileage Rate';
+        veh.Year__c = '2019';
+        insert veh;
+        
         TriggerConfig__c customSetting =  new TriggerConfig__c();
         customSetting.Name = 'Defaulttrigger';
         customSetting.MappingGasPriceTrigger__c = true;
@@ -34,6 +40,7 @@ public class MassSyncTripsTest {
         contact.MailingCity='ahmedabad';
         contact.MailingState='GJ';
         contact.compliancestatus__c = 'No – Vehicle Age';
+        contact.Vehicle_Type__c = '2019 Mileage Rate';
         insert contact;
         contactids.add(contact.Id);
         
@@ -73,7 +80,7 @@ public class MassSyncTripsTest {
         
         Test.startTest();
         Test.SetMock(HttpCalloutMock.class, new GetTripCalloutMock());
-        MassSyncTrips obj = new MassSyncTrips(Acc.Id,'2020-10-01','2020-10-31','09-2020');
+        MassSyncTrips obj = new MassSyncTrips(Acc.Id,'2020-10-01','2020-10-31','09-2020','U',false);
         DataBase.executeBatch(obj);
         
         Test.stopTest();

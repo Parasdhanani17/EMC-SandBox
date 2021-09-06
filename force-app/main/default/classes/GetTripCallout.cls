@@ -17,7 +17,7 @@ global class GetTripCallout {
         List<Tripslog__c> obj_Tripslog_list = new List<Tripslog__c>();   
         List<Employee_Mileage__c> empList = new List<Employee_Mileage__c>();
         Double totalmileages = 0;
-        
+        //String activityStatus;
         //Request Variables
         Http h = new Http();
         HttpRequest req = new HttpRequest();
@@ -42,6 +42,7 @@ global class GetTripCallout {
             TripLogJSONClass.TripLogJSONClassInner tripLog = TripLogJSONClass.parse(res.getBody());
             List<TripLogJSONClass.Trips> listTrips = tripLog.trips;
             Datetime MaxTime;
+            Boolean CheckHomeTrip = false;
             /**** Create Employee Mileage Record ****/
             for(TripLogJSONClass.Trips lt : listTrips) 
             {   
@@ -50,11 +51,19 @@ global class GetTripCallout {
                 emp.Trip_Status__c = StaticValues.noApprovedYet;
                 emp.Trip_Id__c = lt.id;
                 emp.Mileage__c = lt.mileage;
+                emp.EMP_Mileage__c = lt.mileage;
                 //AI-000408
                 /*if(emp.Mileage__c == null || emp.Mileage__c == 0) {
                     emp.Trip_Status__c = 'Approved';
                     emp.Approved_Date__c = System.Today();
                 }*/
+                //This is for PL marketing account
+                emp.Activity__c = lt.activity;
+                if(emp.Activity__c == 'Commute' && emp.Mileage__c >= 30) {
+                    emp.Mileage__c = emp.Mileage__c - 30;
+                } else if(emp.Activity__c == 'Commute'){
+                    emp.Mileage__c = 0;
+                }
                 emp.EmployeeReimbursement__c = empReID;
                 emp.Contact_Email_Id__c = contactEmail;
                 emp.StartTime__c = !CheckNull(lt.startTime) ? ConvertToDateTime(lt.startTime) : null;
@@ -96,6 +105,13 @@ global class GetTripCallout {
                     empList.get(empList.size()-1).Stay_Time__c = 0;
                 }
                 MaxTime = emp.EndTime__c;*/
+                if(emp.Destination_Name__c != null && (emp.Destination_Name__c).toUppercase() == 'HOME'){
+                   CheckHomeTrip = true;
+                }
+                if(emp.Origin_Name__c != null && (emp.Origin_Name__c).toUppercase() == 'HOME' && CheckHomeTrip == true){
+                   emp.Stay_Time__c = 0;
+                   CheckHomeTrip = false;
+                }
                 if(!CheckNull(lt.map_Z)){
                     emp.Triplog_Map__c = baseURL + '/kml/embed/' +  ( lt.map_Z.contains('/') ? lt.map_Z.split('/')[4] : ''); // MLOG Change | Sanjay Halpati | 12 May 2020
                 } else {

@@ -25,7 +25,8 @@ Functionality : Update Mileages - Change its Reim, Approved Date and Status
     <apex:stylesheet value="{!URLFOR($Resource.Tablesorter, 'themes/blue/style.css')}"/>
    
     <apex:includeScript value="{!URLFOR($Resource.Tablesorter, 'jquery.tablesorter.min.js')}"/> -->
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
     <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!--<style>
         .popupBackgroundsp {
@@ -144,7 +145,7 @@ Functionality : Update Mileages - Change its Reim, Approved Date and Status
                 }]
             });
             var allPages = accTable.cells( ).nodes( );
-
+           
             j$('body').on('change', 'input[id$=topInput]', function () {
                 if (j$(this).hasClass('allChecked')) {
                     j$('input[type="checkbox"]', allPages).prop('checked', false);
@@ -153,16 +154,27 @@ Functionality : Update Mileages - Change its Reim, Approved Date and Status
                 }
                 j$(this).toggleClass('allChecked');
             });
+
+           
+            // j$('input[id$=isCheckDone]').on('change', function(){
+            //     console.log(j$(this).val(), j$(this).prop('checked'), j$(this));
+            // })
+           
             j$(".dataTables_length select").addClass("slds-select selectCss");
             j$(".dataTables_filter input[type=search]").addClass("slds-truncate slds-input searchInput");
             j$(".dataTables_length").css("margin-bottom", "16px");
         });
-      
+        var refreshPage = function () {
+            setTimeout(function () {
+                location.reload();
+            }, 2000)
+        }
     </script>
     <apex:form id="theForm">
         <div class="slds">
             <apex:pageBlock mode="maindetail" id="parentPageBlock">
                 <apex:messages styleClass="slds-notify slds-notify_toast slds-theme_info slds-notify--toast" />
+                <apex:pageMessages id="showmsg"></apex:pageMessages>
                 <!--<div class="slds-page-header">
                     <div class="slds-grid">
                         <div class="slds-col slds-has-flexi-truncate">
@@ -222,7 +234,7 @@ Functionality : Update Mileages - Change its Reim, Approved Date and Status
                                 </span>
                             </div>
                             <div class="slds-media__body">
-                                <h1 class="slds-page-header__title slds-truncate slds-align-middle" title="Employee Mileage Details">Employee Mileage Details</h1>
+                                <h2 class="slds-page-header__title slds-truncate slds-align-middle" title="Employee Mileage Details">Employee Mileage Details</h2>
                             </div>
                         </div>
                     </div>
@@ -241,6 +253,8 @@ Functionality : Update Mileages - Change its Reim, Approved Date and Status
                         <apex:outputText value="Maintenance and Tires" styleClass="slds-form-element__label" style="font-size: 15px;font-weight: bold;"
                         />
                         <apex:inputField value="{!mileage.Maintenance_and_Tires__c}" styleClass="slds-truncate slds-input slds-size-2-of-6" />
+                        <apex:outputText value="Activity" styleClass="slds-form-element__label" style="font-size: 15px;font-weight: bold;" />
+                        <apex:inputField value="{!mileage.Activity__c}" styleClass="slds-truncate slds-select slds-size-2-of-6" />
                     </apex:panelGrid>
                     <br/>
 
@@ -267,7 +281,7 @@ Functionality : Update Mileages - Change its Reim, Approved Date and Status
                                          <!-- onchange="checkAll(this)" -->
                                      </apex:inputCheckbox>
                                  </apex:facet>
-                                 <apex:inputCheckbox value="{!wrapper.isSelected}" styleClass="slds-checkbox selectInput" id="isCheckDone">
+                                 <apex:inputCheckbox value="{!wrapper.isSelected}"   styleClass="slds-checkbox selectInput" id="isCheckDone">
                                      <!-- <apex:actionSupport event="onclick" reRender="pageBlock__Table"/> -->
                                  </apex:inputCheckbox>
                              </apex:column>
@@ -282,6 +296,7 @@ Functionality : Update Mileages - Change its Reim, Approved Date and Status
                              <apex:column value="{!wrapper.mileage.Fuel_price__c}" />
                              <apex:column value="{!wrapper.mileage.MPG__c}" />
                              <apex:column value="{!wrapper.mileage.Maintenance_and_Tires__c}" />
+                             <apex:column value="{!wrapper.mileage.Activity__c}" />
                              <apex:facet name="footer">
                                  <apex:outputText styleClass="slds-form-element__label"> Showing Page # {!pageNumber} of {!totalPages}</apex:outputText>
                              </apex:facet>
@@ -302,8 +317,8 @@ Functionality : Update Mileages - Change its Reim, Approved Date and Status
             </apex:pageBlock>
 
             <center>
-                <apex:commandButton action="{!updateMileages}" styleClass="slds-button slds-button--neutral slds-not-selected" value="Update"
-                />
+                <apex:commandButton action="{!updateMileages}" styleClass="slds-button slds-button--neutral slds-not-selected" value="Update" />
+                <apex:commandButton action="{!putHTTP}"  styleClass="slds-button slds-button--neutral slds-not-selected" value="Change Trip Status" rerender="showmsg" oncomplete="refreshPage()"/>
             </center>
         </div>
     </apex:form>

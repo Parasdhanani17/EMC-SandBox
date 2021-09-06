@@ -13,7 +13,7 @@ global class SendActivaitonEmailToDriver implements Database.Batchable<sObject>,
                                     WHERE (Role__c ='Driver' 
                                             OR Role__c = 'Driver/Manager' 
                                             OR Role__c =: StaticValues.roleAdminDriver) and Activation_Date__c =: system.today().addDays(2) ];
-			
+            
         } else {
             obj_contact_list = [SELECT Id, Role__c, Activation_Date__c,
                                         External_Email__c, FirstName, Added_Date__c
@@ -37,7 +37,7 @@ global class SendActivaitonEmailToDriver implements Database.Batchable<sObject>,
             List<String> address = new List<String>();
             if(objSendEmailToMe.Send_email_to_me__c == true)
             {
-                address.add('sanket.goswami@getoncrm.com');
+                //address.add('sanket.goswami@getoncrm.com');
                 //address.add(c.External_Email__c);
                 mail.setBCCAddresses(new string[]{'driverservices@mburse.com'});                    
             }

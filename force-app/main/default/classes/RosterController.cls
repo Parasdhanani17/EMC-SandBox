@@ -453,7 +453,8 @@ global without sharing class RosterController
                                             MobilePhone,Phone,Branch_Number__c,Branch_Name__c,
                                             Freeze__c,Driver_Type__c,Territory__c,Code__c,District__c,
                                             Department__c,Job_Title__c,Employee_Netchex_Id__c,Dept__c,
-                                            Average_Mileage__c,Average_Reimbursement__c,Deactivated_By__c
+                                            Average_Mileage__c,Average_Reimbursement__c,Deactivated_By__c,
+                                            Division__c,Department
                                         FROM Contact 
                                         WHERE Accountid=:accid]) //Branch_Number__c,Branch_Name__c 
         {                
@@ -940,7 +941,7 @@ global without sharing class RosterController
         return result ;
     }
 
-    //AI-000580	
+    //AI-000580 
     @RemoteAction
     public static void updateLockDate(String accountId, String lockDate,String reiMonth){
         if(accountId != null && lockDate != null){
@@ -1034,7 +1035,7 @@ global without sharing class RosterController
     @RemoteAction
     public static String editEmployeeDetails(String editUserID) {
         Contact loggedinContact = new Contact();
-        query = 'Select id,Name,FirstName,Lastname,Email,External_Email__c,Deactivated_Date__c,Role__c,Manager__c,Manager__r.Name,MailingPostalCode,Driving_States__c,MailingState,MailingCity,Employee_ID__c,Activation_Date__c,Vehicle_Type__c,Last_Pay_Date__c,Monthly_Mileage_Limit__c,Added_Date__c,Fixed_Amount__c,compliancestatus__c,Total_Reimbursement__c,IsDeactivated__c,Monthly__c,Sage_100_ID__c,GL_Code__c,App__c,MobilePhone,Phone,Branch_Name__c,Branch_Number__c,Freeze__c,Driver_Type__c,Territory__c,Code__c,District__c,Department__c,Dept__c,Job_Title__c,Employee_Netchex_Id__c,Deactivated_By__c from Contact where id=\''+editUserID+'\''; 
+        query = 'Select id,Name,FirstName,Lastname,Email,External_Email__c, Division__c,Department,Deactivated_Date__c,Role__c,Manager__c,Manager__r.Name,MailingPostalCode,Driving_States__c,MailingState,MailingCity,Employee_ID__c,Activation_Date__c,Vehicle_Type__c,Last_Pay_Date__c,Monthly_Mileage_Limit__c,Added_Date__c,Fixed_Amount__c,compliancestatus__c,Total_Reimbursement__c,IsDeactivated__c,Monthly__c,Sage_100_ID__c,GL_Code__c,App__c,MobilePhone,Phone,Branch_Name__c,Branch_Number__c,Freeze__c,Driver_Type__c,Territory__c,Code__c,District__c,Department__c,Dept__c,Job_Title__c,Employee_Netchex_Id__c,Deactivated_By__c from Contact where id=\''+editUserID+'\''; 
         List<EmployeeDetails> employeeList = new List<EmployeeDetails>();
         List<Contact> managerlist = (List<Contact>)ExecuteQueryUtil.getRecordListFromsObject(query);
         
@@ -1102,6 +1103,10 @@ global without sharing class RosterController
     //AI-000439
     @RemoteAction
     public static string putHTTP(String accountID,String empEmail) {
+      
+       system.debug('accountID=='+accountID);
+        system.debug('empEmail=='+empEmail);
+        
         String MLOGACCOUNT = System.Label.Triplog_New_URL;
         
         String body, apiToken;
@@ -1151,6 +1156,8 @@ global without sharing class RosterController
     //AI-000439
     @RemoteAction
     public static void putHTTPConcurConnect(String accountID,String empEmail) {
+        system.debug('putHTTPConcurConnect accountID'+accountID);
+        system.debug('putHTTPConcurConnect empEmail='+empEmail);
         String MLOGACCOUNT = System.Label.Triplog_New_URL;
         
         String body, apiToken;
@@ -1256,11 +1263,25 @@ global without sharing class RosterController
             update contactList;
         }
     }
-
+    
+     @AuraEnabled
+    public static string deleteTrips(String accountId,String month){
+        
+        if(accountId != null){
+            delete [SELECT id 
+                    FROM Employee_Mileage__c 
+                    WHERE Trip_Status__c = 'Not Approved Yet' 
+                        AND EmployeeReimbursement__r.Contact_Id__r.AccountId =: accountId
+                        AND EmployeeReimbursement__r.Month__c =: month
+                        AND EmployeeReimbursement__r.Status__c = 'Pending'];
+        }
+        return 'deleted';
+    }
+    
     @RemoteAction
-    public static void MassSyncTrips(String accountId,String startDate,String endDate,String month){
+    public static void MassSyncTrips(String accountId,String startDate,String endDate,String month,String tripStatus){
         System.debug('startDate'+startDate+'=======endDate'+endDate+'accountId'+accountId);
-        MassSyncTrips  obj = new MassSyncTrips(accountId,startDate,endDate,month);
+        MassSyncTrips  obj = new MassSyncTrips(accountId,startDate,endDate,month,tripStatus,false);
         Database.executeBatch (obj,1);
     }
     public static List<String> getMonths(Integer month) {

@@ -206,7 +206,7 @@ public class WrapperUtils_Test {
             WrapperUtils.getLast2Years();
             WrapperUtils.getReimbursementsListClone(obj_Driver_list[0].id);
             WrapperUtils.approveReimbursements('2019',obj_Driver_list[0].id,obj_Account.id,JSON.serialize(obj_EmployeeReimbursements_list2));
-            WrapperUtils.updateLockDate(obj_Account.id,'12/21/20',obj_Driver_list[0].id);
+            WrapperUtils.updateLockDate(obj_Account.id,obj_Driver_list[0].id);
             WrapperUtils.UpdateReimbursementStatus(obj_Employee_Reimbursement_list[0].id);
             WrapperUtils.getMileagesBasedTA('2020-01-01','2021-12-01',obj_Driver_list[0].id);
             //WrapperUtils.approveMileagesClone1(JSON.serialize(obj_list_mileages));
@@ -429,7 +429,7 @@ public class WrapperUtils_Test {
             WrapperUtils.getLast2Years();
             WrapperUtils.getReimbursementsListClone(obj_Driver_list[0].id);
             WrapperUtils.approveReimbursements('2019',obj_Driver_list[0].id,obj_Account.id,JSON.serialize(obj_EmployeeReimbursements_list2));
-            WrapperUtils.updateLockDate(obj_Account.id,'12/21/20',obj_Driver_list[0].id);
+            WrapperUtils.updateLockDate(obj_Account.id,obj_Driver_list[0].id);
             WrapperUtils.UpdateReimbursementStatus(obj_newreimbursements[0].id);
             WrapperUtils.readFromFileInchunk('test',att.Name,String.valueOf(att.Id),String.valueOf(obj_Driver_list[0].Id),String.valueOf(obj_Account.Id),null);
         Test.stopTest();   
@@ -645,7 +645,7 @@ public class WrapperUtils_Test {
             WrapperUtils.getLast2Years();
             WrapperUtils.getReimbursementsListClone(obj_Driver_list[0].id);
             WrapperUtils.approveReimbursements('2019',obj_Driver_list[0].id,obj_Account.id,JSON.serialize(obj_EmployeeReimbursements_list2));
-            WrapperUtils.updateLockDate(obj_Account.id,'12/21/20',obj_Driver_list[0].id);
+            WrapperUtils.updateLockDate(obj_Account.id,obj_Driver_list[0].id);
             WrapperUtils.readFromFileInchunk('test',att.Name,String.valueOf(att.Id),String.valueOf(obj_Driver_list[0].Id),String.valueOf(obj_Account.Id),null);
         Test.stopTest();   
     }

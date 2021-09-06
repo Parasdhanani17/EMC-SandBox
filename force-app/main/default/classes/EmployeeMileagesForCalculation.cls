@@ -9,9 +9,10 @@ public with sharing class EmployeeMileagesForCalculation {
     public String totalMileages {get;set;}
     public List<EmployeeMileages> mileagesList {get;set;}
     public String approvedMileages {get;set;}
-//  public String status {get;set;}
+    public String status {get;set;}
 //  public String approvedDate {get;set;}   
     public Boolean isSelected {get;set;}
+    public Boolean reimbursementApproval {get;set;}
     public List<String> reimbursementIdList {get;set;}
     public String managerName{get;set;}
     public Boolean isSelectedEmailReminder {get;set;}

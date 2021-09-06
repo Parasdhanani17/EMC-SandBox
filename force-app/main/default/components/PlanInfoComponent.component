@@ -1,11 +1,11 @@
 <apex:component >
     <apex:attribute name="driverPacketDocCount" description="Size of Driver packet document" type="Integer" required="true"/>
     <apex:attribute name="insuranceDocCount" description="Size of Insurance document" type="Integer" required="true"/>
-    <apex:attribute name="mvrCheckDocCount" description="Size of MVR Check document" type="Integer" required="true"/>
+    <apex:attribute name="mvrCheckDocCount" description="Size of MVR Check document" type="Integer" required="true" />
     <apex:attribute name="driverPacketId" description="Size of Insurance document" type="Id" />
     <apex:attribute name="insuranceId" description="Size of Insurance document" type="Id" />
     <apex:attribute name="mvrCheckId" description="Size of MVR Check document" type="Id" />
-                <style type="text/css">
+        <style type="text/css">
             @media (min-width: 320px) and (max-width: 767px) {
                 .emc_new_insurance_tab_pills .plan-info-timeline {
                     margin-right: 0px !important;
@@ -345,8 +345,44 @@
                 color: #FF0000;
                 font-weight: bold;
             }
+            .reim-table td, .reim-table th{
+                padding: .2rem !important;
+            }
+            .mb-r{
+                margin-bottom: 0.3rem !important;
+            }
+            .pl{
+                width: 6em;
+            }
+            .plr{
+               width: 5em;
+            }
+            .font-white{
+                color: #ffffff;
+                font-weight: bold;
+            }
+            .header-lt{
+                background: #11113e;
+                color: #fff;
+                border: 1px solid #11113e;
+                padding:0.7rem 0.75rem;
+            }
+            .header-middle-lt{
+                background : #efefef;
+                border: 1px solid #efefef;
+                padding: 0.4rem 0.75rem 0 0.75rem;
+            }
+            .header-bottom-lt{
+                background: rgb(161 165 169);
+                border: 1px solid rgb(161 165 169);
+                padding: 0rem 0.75rem 0 0.75rem;
+                color: #fff;
+            }
+            .header-font{
+                font-size: 18px !important;
+            }
         </style>
-
+    <!-- 0010Z000024KpO4QAK -->
         <ul class="nav nav-pills pt-3 pb-3">
             <li class="nav-item emc_nav_tab">
                 <a class="nav-link active" data-toggle="pill" href="#pills-timeline-driving-packet">Driver Packet</a>
@@ -360,8 +396,11 @@
             <li class="nav-item emc_nav_tab">
                 <a class="nav-link" data-toggle="pill" ng-click="complianceCalculation()" data-target="#pills-timeline-compliance">Compliance</a>
             </li>
-            <li class="nav-item emc_nav_tab" ng-if="accid === WeiserAccID">
-                <a class="nav-link" data-toggle="pill" ng-click="mvrCheckCalculation()" data-target="#pills-timeline-mvrCheck">MVR Check</a>
+            <li class="nav-item emc_nav_tab">
+                <a class="nav-link" data-toggle="pill"  href="#pills-timeline-reimbursement">My Reimbursement</a>
+            </li>
+            <li class="nav-item emc_nav_tab" ng-if="accid === WeiserAccID" ng-show="isMVR">
+                <a class="nav-link" data-toggle="pill"  data-target="#pills-timeline-mvrCheck">MVR Check</a>
             </li>
         </ul>
         <div class="p-41">
@@ -481,7 +520,26 @@
                     </apex:form>
                 </div>
 
-                <div class="tab-pane" id="pills-timeline-mvrCheck">
+                <div class="tab-pane" id="pills-timeline-compliance">
+                    <span id="drivername" class="span-drivername">{{messageofcompliance}}</span>
+                    <!--<span id="drivername" ng-if="empContact[0].compliancestatus__c!=null && empContact[0].compliancestatus__c=='Yes' && compliancedata.length > 0" class="span-drivername">{{empContact[0].Name}} is Compliance, But not driving the equivalent annual 5,000-mile minimum at this time.</span>
+                    <span id="drivername" ng-if="empContact[0].compliancestatus__c!=null && empContact[0].compliancestatus__c=='Yes' && compliancedata.length == 0"
+                        class="span-drivername">{{empContact[0].Name}} is Compliance.</span>
+                        <span id="drivername" ng-if="empContact[0].compliancestatus__c!=null && empContact[0].compliancestatus__c!='Yes' && compliancedata.length > 0"
+                            class="span-drivername">{{empContact[0].Name}} is not in Compliance, Because of "{{empContact[0].compliancestatus__c}}"</span>
+                        <span id="drivername" ng-if="empContact[0].compliancestatus__c!=null && empContact[0].compliancestatus__c!='Yes' && compliancedata.length == 0"
+                            class="span-drivername">{{empContact[0].Name}} is not in Compliance, Because of "{{empContact[0].compliancestatus__c}}"</span>
+                           <span id="drivername" ng-if="empContact[0].compliancestatus__c==null" class="span-drivername">{!$Label.waitingfordocumentation}</span>-->
+                       <!--     <span id="drivername" ng-if="empContact[0].compliancestatus__c==null"
+                                class="span-drivername">We are either Waiting for documentation or reviewing your documentation</span>-->
+                    <!-- <span id="drivername" ng-if="compliancedata.length == 0" class="span-drivername">{{empContact[0].Name}} is in Compliance</span>
+                     <span id="drivername">{{empContact[0].Name}} Is In Compliance<span id="status2"></span></span>
+                        <span id="pendingcompliance">{{empContact[0].Name}} Not In Compliance <span id="status"></span></span>
+                        <span id="compliancestatus"></span> -->
+                    <c:ComlianceCalculation />
+                </div>
+
+                <div class="tab-pane" id="pills-timeline-mvrCheck" ng-show="isMVR">
                     <apex:form html-ng-non-bindable="true" styleClass="pull-right">
                         <apex:outputPanel rendered="{!mvrCheckDocCount > 0}">
                             <div class="tab-pills-width ng-pristine ng-valid emc_insurance_tab_pills emc_insurance_tab_upload_pills">
@@ -528,23 +586,95 @@
                     </apex:form>
                 </div>
 
-                <div class="tab-pane" id="pills-timeline-compliance">
-                    <span id="drivername" class="span-drivername">{{messageofcompliance}}</span>
-                    <!--<span id="drivername" ng-if="empContact[0].compliancestatus__c!=null && empContact[0].compliancestatus__c=='Yes' && compliancedata.length > 0" class="span-drivername">{{empContact[0].Name}} is Compliance, But not driving the equivalent annual 5,000-mile minimum at this time.</span>
-                    <span id="drivername" ng-if="empContact[0].compliancestatus__c!=null && empContact[0].compliancestatus__c=='Yes' && compliancedata.length == 0"
-                        class="span-drivername">{{empContact[0].Name}} is Compliance.</span>
-                        <span id="drivername" ng-if="empContact[0].compliancestatus__c!=null && empContact[0].compliancestatus__c!='Yes' && compliancedata.length > 0"
-                            class="span-drivername">{{empContact[0].Name}} is not in Compliance, Because of "{{empContact[0].compliancestatus__c}}"</span>
-                        <span id="drivername" ng-if="empContact[0].compliancestatus__c!=null && empContact[0].compliancestatus__c!='Yes' && compliancedata.length == 0"
-                            class="span-drivername">{{empContact[0].Name}} is not in Compliance, Because of "{{empContact[0].compliancestatus__c}}"</span>
-                           <span id="drivername" ng-if="empContact[0].compliancestatus__c==null" class="span-drivername">{!$Label.waitingfordocumentation}</span>-->
-                       <!--     <span id="drivername" ng-if="empContact[0].compliancestatus__c==null"
-                                class="span-drivername">We are either Waiting for documentation or reviewing your documentation</span>-->
-                <!-- <span id="drivername" ng-if="compliancedata.length == 0" class="span-drivername">{{empContact[0].Name}} is in Compliance</span>
-                     <span id="drivername">{{empContact[0].Name}} Is In Compliance<span id="status2"></span></span>
-<span id="pendingcompliance">{{empContact[0].Name}} Not In Compliance <span id="status"></span></span>
-<span id="compliancestatus"></span> -->
-                    <c:ComlianceCalculation />
+                <div class="tab-pane" id="pills-timeline-reimbursement">
+                    <div class="col-12 col-lg-12 col-xl-12 col-md-12 col-sm-12 ml-16 mt-35">
+                        <div class="row">
+                            <div class="col-12 col-lg-6 col-xl-3 col-md-6 col-sm-12 mb-lg-4 mb-4">
+                                <div class="header-lt mb-6">
+                                    <h5 class="font-weight-bold header-font">My Annual Fixed Costs Rates</h5>
+                                </div>
+                                <div class="header-middle-lt mb-1">
+                                    <table class="table table-borderless reim-table">
+                                        <tbody >
+                                            <tr>
+                                                <td class="col-12 col-lg-6 col-xl-5 col-md-6 col-sm-12">{{empContact[0].Insurance_Rate__c | currency:"$":2}}</td>
+                                                <td>Insurance</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="col-12 col-lg-6 col-xl-5 col-md-6 col-sm-12">{{empContact[0].License_Ragistration__c| currency:"$":2}}</td>
+                                                <td >License/Registration</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="col-12 col-lg-6 col-xl-5 col-md-6 col-sm-12">{{empContact[0].Taxes__c| currency:"$":2}}</td>
+                                                <td >Taxes</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="col-12 col-lg-6 col-xl-5 col-md-6 col-sm-12">{{empContact[0].Depreciation__c| currency:"$":2}}</td>
+                                                <td >Depreciation</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="header-middle-lt mb-1">
+                                    <table class="table table-borderless reim-table">
+                                        <tbody >
+                                            <tr>
+                                                <td class="col-12 col-lg-6 col-xl-5 col-md-6 col-sm-12">{{empContact[0].Total_Monthly_Costs__c | currency:"$":2}}</td>
+                                                <td>Annual Fixed Costs</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="col-12 col-lg-6 col-xl-5 col-md-6 col-sm-12">{{businessUse| currency:"$":2}}</td>
+                                                <td >{{empContact[0].Business_Use__c}}% of Business Use</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="header-bottom-lt">
+                                    <table class="table table-borderless reim-table mb-r">
+                                        <tbody >
+                                            <tr>
+                                                <td class="font-white col-12 col-lg-6 col-xl-4 col-md-6 col-sm-12">{{totalMonthlyAmount| currency:"$":2}}</td> <!-- plr -->
+                                                <td class="font-white">Monthly Fixed Amount</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6 col-xl-3 col-md-6 col-sm-12 mb-lg-4 mb-4">
+                                <div class="header-lt mb-6">
+                                    <h5 class="font-weight-bold header-font">My Monthly Variable Costs Rates</h5>
+                                </div>
+                                <div class="header-middle-lt mb-1">
+                                    <table class="table table-borderless reim-table">
+                                        <tbody >
+                                            <tr>
+                                                <td class="col-12 col-lg-6 col-xl-4 col-md-6 col-sm-12">{{ fuelprice| currency:"$":4}}</td>
+                                                <td>Gas</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="col-12 col-lg-6 col-xl-4 col-md-6 col-sm-12">{{empContact[0].Maintenance__c| currency:"$":4}}</td>
+                                                <td >Oil/Maintenance</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="col-12 col-lg-6 col-xl-4 col-md-6 col-sm-12">{{empContact[0].Tires__c| currency:"$":4}}</td>
+                                                <td >Tires</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="header-bottom-lt">
+                                    <table class="table table-borderless reim-table mb-r">
+                                        <tbody >
+                                            <tr>
+                                                <td class="font-white col-12 col-lg-6 col-xl-4 col-md-6 col-sm-12">{{miles | currency:"$":4}}</td>
+                                                <td class="font-white">Per Mile</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

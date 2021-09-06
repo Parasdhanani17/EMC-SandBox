@@ -36,8 +36,8 @@ public class AdminDashboardController_test {
         currentupdateThresholdWrapper.contactid = selectedDriver.id;
         currentupdateThresholdWrapper.threshold = '20';
         updateThresholdWrapperList.add(currentupdateThresholdWrapper);
-        AdminDashboardController.approveReimbursements(JSON.serialize(reimbursementIdList),currentAdmin.id,currentAccount.id,'false',JSON.serialize(updateThresholdWrapperList));
-        List<String> result =AdminDashboardController.approveMileagesClone(JSON.serialize(reimbursementIdList),currentAdmin.id,currentAccount.Id,'true');
+        AsyncApexJob batch = AdminDashboardController.approveReimbursements(JSON.serialize(reimbursementIdList),currentAdmin.id,currentAccount.id,'false',JSON.serialize(updateThresholdWrapperList));
+        AdminDashboardController.approveMileagesClone(JSON.serialize(reimbursementIdList),currentAdmin.id,currentAccount.Id,'true');
         System.debug('employeereimbursementList'+employeereimbursementList);
        
 
@@ -71,7 +71,8 @@ public class AdminDashboardController_test {
         // AdminDashboardController.approveMileages(null,null,selectedDriver.Name,selectedDriver.Email);
         
         AdminDashboardController.approveMileages(null,null,null,JSON.serialize(obj_EmployeeMileages_list1),JSON.serialize(obj_EmployeeMileages_list2));
-        
+        AdminDashboardController.CheckBatchStatus(batch.id);
+        AdminDashboardController.UpdatedReimList(currentAdmin.id, currentAccount.Id, 'true');
         Test.stopTest();
     }
 }

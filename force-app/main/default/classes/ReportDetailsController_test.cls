@@ -106,6 +106,8 @@ public class ReportDetailsController_test {
         ReportDetailsController.getAllReportSoql(rep2.Report_Soql__c,rep2.Report_Type__c,obj_manager.id,System.today().month()+'/'+System.today().Day()+'/'+String.valueOf(System.today().year()).right(2),System.today().month()+'/'+System.today().Day()+'/'+String.valueOf(System.today().year()).right(2),obj_admin.Id,obj_account.Id,rep2.Id,'Driver');
         ReportDetailsController.getAllReportSoql(rep14.Report_Soql__c,rep14.Report_Type__c,'','01/08/19','09/27/19',obj_admin.Id,obj_account.Id,rep14.Id,'Driver');
         ReportDetailsController.getAllReportSoql(rep14.Report_Soql__c,rep14.Report_Type__c,obj_manager.id,'01/08/19','09/27/19',obj_admin.Id,obj_account.Id,rep14.Id,'Driver');
+        ReportDetailsController.builTripsDate('7/1/2021');
+        ReportDetailsController.getAllReportSoqlForManager();
         Test.stopTest();
 
         
@@ -201,6 +203,8 @@ public class ReportDetailsController_test {
         ReportDetailsController.getAllReportSoql(rep13.Report_Soql__c,rep13.Report_Type__c,obj_manager.id,'01/08/19','01/09/19',obj_admin.Id,obj_account.Id,rep13.Id,'Manager');
         ReportDetailsController.getAllReportSoqlForDriver();
         ReportDetailsController.buildDateforTripDate('9/1/2020');
+        ReportDetailsController.builTripsDate('7/1/2021');
+        ReportDetailsController.getAllReportSoqlForManager();
         Test.stopTest();
 
         

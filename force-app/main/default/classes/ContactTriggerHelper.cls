@@ -298,7 +298,7 @@ public without sharing class ContactTriggerHelper {
                 upsert reimToInsert;
                 ContactTriggerHelper.putHTTPEnableUserTriplog(con.id);
                 RosterController.resetPassword(con.id);
-                RosterController.putHTTP(con.AccountId,con.External_Email__c);
+                putHTTP(con.AccountId,con.External_Email__c);
             }
         }
     }
@@ -324,6 +324,7 @@ public without sharing class ContactTriggerHelper {
     public static void  CommunityReimCreate(List<Contact> contactList) {
         List<Employee_Reimbursement__c> reimToInsert   = new List<Employee_Reimbursement__c>();
         for(Contact con : contactList){
+            putHTTP(con.AccountId,con.External_Email__c);
             if(con.Role__c != 'Admin' && con.Role__c != 'Manager' && con.Deactivated_Date__c == null) {
                 reimToInsert.add(CreateReimbursement(con));
             }
@@ -331,6 +332,48 @@ public without sharing class ContactTriggerHelper {
         if(reimToInsert.size() > 0){
             insert reimToInsert;
         }
+    }
+    //This method is used send a welcome email from triplog or mlog to install a application.
+    @future (callout=true)
+    Public static void putHTTP(String accountID,String empEmail) {
+        String MLOGACCOUNT = System.Label.Triplog_New_URL;
+        
+        String body, apiToken;
+        List<Account> accountList = [SELECT id,Triplog_API__c  
+                                        FROM Account 
+                                            WHERE Id =: accountID];
+        if(accountList.size() > 0 ){
+            apiToken = accountList[0].Triplog_API__c;
+        }
+        String jsonSubset;
+        String baseURL;
+        if(apiToken != null){
+            baseURL = !MLOGACCOUNT.Contains(apiToken) ? StaticValues.TRIPLOG_BASEURL : StaticValues.MLOG_BASEURL;
+        }
+        String rosterURL = baseURL + StaticValues.WELCOME_SUFFIX;
+        body = '{"emails":[';
+        body = body + String.valueof(empEmail) +']}';
+        system.debug('body'+body);
+        TriplogPutCall__c objTriplog = TriplogPutCall__c.getValues('RosterControllerPutCall');
+         HttpRequest putReq = new HttpRequest();
+         Http putHTTP = new Http();
+         HttpResponse putRes = new HttpResponse();
+       
+         putReq.setEndpoint(rosterURL);
+         putReq.setMethod('PUT');                 
+         putReq.setBody(body);
+         putReq.setTimeout(120000);
+         putReq.setHeader('Authorization', 'apikey ' + apiToken);
+         putReq.setHeader('Content-Type', 'application/json');
+        
+        if(!Test.isRunningTest() && objTriplog.TriplogPut__c == true){
+             if(objTriplog.TriplogPut__c == true){
+                 putRes = putHTTP.send(putReq);
+                 system.debug('putRes'+putRes.getBody());
+                 Map<String,Object> jsonMap = (Map<String, Object>)JSON.deserializeUntyped(putRes.getBody());
+                 jsonSubset = JSON.serialize(jsonMap.get('message'));
+            }
+         }   
     }
     @Future(callout = true)
     public static void putHTTPEnableUserTriplog(String conId) {
@@ -362,126 +405,6 @@ public without sharing class ContactTriggerHelper {
             }
         }
     }    
-/* SHould shift in Batch Class :- UserRoleUpdateBatch
-    @future
-    public static void updateUserEmail (Set<Id> contactIds) {
-        List<User> listofUsers = new List<User>();
-        if(!contactIds.isEmpty()) {
-            for(User singleUser : [SELECT Id,Email,UserName,ContactId,Contact.External_Email__c FROM User WHERE ContactId IN: contactIds]) {
-                singleUser.UserName = singleUser.Contact.External_Email__c;
-                singleUser.Email = singleUser.Contact.External_Email__c;
-                listofUsers.add(singleUser);
-            }
-        }
-        if(!listofUsers.isEmpty()) {
-            try {
-                update listofUsers;
-            }catch (DmlException e) {
-                System.debug('listofUsers:'+e.getMessage());
-            }
-        }
-    }
-    
-    @future
-    public static void updateUserData (Set<Id> contactNameChange) {
-        List<User> updateUser = new List<User>();
-        if(!contactNameChange.isEmpty()) {
-            for(User userData : [SELECT Id,Contact.FirstName,Contact.LastName FROM User WHERE ContactId IN: contactNameChange]) {
-                userData.FirstName = userData.Contact.FirstName;
-                userData.LastName = userData.Contact.LastName;
-                updateUser.add(userData);
-            }
-        }
-        if(!updateUser.isEmpty()) {
-            try {
-                update updateUser;
-            } catch (DmlException e) {
-                System.debug('updateUser:' +e.getMessage());
-            }
-        }
-    }*/
-    /*public static Void sendEmailToAdmin(List<Contact> newContacts, Map<Id, Contact> oldContacts, List<Contact> oldCons) {
-        OrgWideEmailAddress[] owea = [SELECT Id, address FROM OrgWideEmailAddress WHERE Address = 'driverservices@mburse.com'];
-        List<Messaging.SingleEmailMessage> mails = new List<Messaging.SingleEmailMessage>();
-        Map<Id, String> oldContactIdToName = new Map<Id, String>();
-        //List<Contact> contacts = new List<Contact>();
-        for(Contact oldCon : oldCons) {
-            oldContactIdToName.put(oldCon.Id, oldCon.Name);
-        }
-        for(Contact contact : newContacts) {
-            if(!owea.isEmpty() && contact.Deactivated_Date__c != oldContacts.get(contact.Id).Deactivated_Date__c ||
-                contact.Role__c != oldContacts.get(contact.Id).Role__c ||
-                contact.Vehicle_Type__c != oldContacts.get(contact.Id).Vehicle_Type__c ||
-                contact.Manager__c != oldContacts.get(contact.Id).Manager__c ||
-                contact.MailingPostalCode != oldContacts.get(contact.Id).MailingPostalCode ||
-                contact.Employee_ID__c != oldContacts.get(contact.Id).Employee_ID__c ||
-                contact.Email != oldContacts.get(contact.Id).Email ||
-                contact.File_Number__c != oldContacts.get(contact.Id).File_Number__c) {
-                string htmlBody = 'Hi, the following details of drivers have been changed. <br/><br/>';
-                htmlBody += '<div style="border:2px border-radius:15px;">' + '<table style="border:3px solid black; border-collapse:collapse;">' + '<tr  bgcolor="#d4d4d4">' + '<th style="border:2px solid black;" width="5%">User</th>' + '<th style="border:2px solid black;" width="5%">Deactivation Date</th>' + '<th style="border:2px solid black;" width="5%">Role</th>' + '<th style="border:2px solid black;" width="5%">Standard Vehicle</th>' + '<th style="border:2px solid black;" width="5%">Home Zip Code</th>' + '<th style="border:2px solid black;" width="5%">Employee Id</th>' + '<th style="border:2px solid black;" width="5%">Email</th>' + '<th style="border:2px solid black;" width="5%">File Number</th>';
-                htmlBody += +'</tr>';
-                htmlBody += +'<tr align="center">' + '<td style="border:2px solid black;">' + contact.FirstName + ' ' +contact.LastName + '</td>';
-                if(contact.Deactivated_Date__c != oldContacts.get(contact.Id).Deactivated_Date__c) {
-                    htmlBody += +'<td style="border:2px solid black;"> From ' + oldContacts.get(contact.Id).Deactivated_Date__c + ' To ' + contact.Deactivated_Date__c + '</td>';
-                } else {
-                    htmlBody += +'<td style="border:2px solid black;"> None </td>';
-                }
-                if(contact.Role__c != oldContacts.get(contact.Id).Role__c) {
-                    htmlBody += +'<td style="border:2px solid black;"> From ' + oldContacts.get(contact.Id).Role__c + ' To ' + contact.Role__c + '</td>';
-                } else {
-                    htmlBody += +'<td style="border:2px solid black;"> None </td>';
-                }
-                if(contact.Vehicle_Type__c != oldContacts.get(contact.Id).Vehicle_Type__c) {
-                    htmlBody += +'<td style="border:2px solid black;"> From ' + oldContacts.get(contact.Id).Vehicle_Type__c + ' To ' + contact.Vehicle_Type__c + '</td>';
-                } else {
-                    htmlBody += +'<td style="border:2px solid black;"> None </td>';
-                }*/
-                /*if(contact.Manager__c != oldContacts.get(contact.Id).Manager__c) {
-                    htmlBody += +'<td style="border:2px solid black;"> From ' + oldContactIdToName.get(oldContacts.get(contact.Id).Manager__c) + ' To ' + contact.Manager__r.FirstName +  ' ' + contact.Manager__r.LastName + '</td>';
-                } else {
-                    htmlBody += +'<td style="border:2px solid black;"> None </td>';
-                }*/
-                /*if(contact.MailingPostalCode != oldContacts.get(contact.Id).MailingPostalCode) {
-                    htmlBody += +'<td style="border:2px solid black;"> From ' + oldContacts.get(contact.Id).MailingPostalCode + ' To ' + contact.MailingPostalCode + '</td>';
-                } else {
-                    htmlBody += +'<td style="border:2px solid black;"> None </td>';
-                }
-                if(contact.Employee_ID__c != oldContacts.get(contact.Id).Employee_ID__c) {
-                    htmlBody += +'<td style="border:2px solid black;"> From ' + oldContacts.get(contact.Id).Employee_ID__c + ' To ' + contact.Employee_ID__c + '</td>';
-                } else {
-                    htmlBody += +'<td style="border:2px solid black;"> None </td>';
-                }
-                if(contact.Email != oldContacts.get(contact.Id).Email ) {
-                    htmlBody += +'<td style="border:2px solid black;"> From ' + oldContacts.get(contact.Id).Email + ' To ' + contact.Email + '</td>';
-                } else {
-                    htmlBody += +'<td style="border:2px solid black;"> None </td>';
-                }
-                if(contact.File_Number__c != oldContacts.get(contact.Id).File_Number__c) {
-                    htmlBody += +'<td style="border:2px solid black;"> From ' + oldContacts.get(contact.Id).File_Number__c + ' To ' + contact.File_Number__c + '</td>';
-                } else {
-                    htmlBody += +'<td style="border:2px solid black;"> None </td>';
-                }
-                htmlBody += +'</tr>';
-                htmlBody += '</table>';
-                messaging.singleEmailMessage mail = new  messaging.singleEmailMessage();
-                mail.setOrgWideEmailAddressId(owea.get(0).Id);
-                //Setting user email in to address con.External_Email__c
-                string[] toAddresses;
-                toAddresses = new string[]{System.Label.DriverServicesEmail};
-                // Assign the addresses for the To and CC lists to the mail object
-                mail.setToAddresses(toAddresses);
-                //Email subject to be changed
-                mail.setSubject('Updated User Details');
-                //Body of email
-                mail.setHtmlBody(htmlBody);
-                mail.setBccAddresses(new String[] {'natavar.goc@gmail.com','Minkesh.patel@getoncrm.com'});
-                mails.add(mail);
-            }
-        }
-        if(!mails.isEmpty()) {
-            //Messaging.sendEmail(mails);
-        }
-    }*/
     
     //Send Email regarding New Drivers AI-000437
     public static void sendEmailForNewContact(List<Contact> contactList) {

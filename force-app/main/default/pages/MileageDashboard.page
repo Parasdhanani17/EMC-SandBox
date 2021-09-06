@@ -104,7 +104,9 @@
             showTeam = "{!$CurrentPage.parameters.showteam}",
             admindriver = "{!$CurrentPage.parameters.admindriver}",
             ProfileId = "{!$User.ProfileId}";
-
+            plMarketing = '{!($Label.PL_Marketing)}';
+            console.log("ProfileId: " + ProfileId);
+            
         $Lightning.use("c:LWCLightningApp", function () {
             $Lightning.createComponent("c:homePageComponent", {
                 //pass parameter values to lwc js controller
@@ -112,7 +114,8 @@
                 "Id": Id,
                 "showTeam": showTeam,
                 "admindriver": admindriver,
-                "ProfileId": ProfileId
+                "ProfileId": ProfileId,
+                "plMarketing": plMarketing,
             }, "lwcDemo", function (cmp) {
                 $("#spinner").hide();
                 console.log("Component Created Successfully");
