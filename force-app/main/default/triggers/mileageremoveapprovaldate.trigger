@@ -4,6 +4,4 @@ trigger mileageremoveapprovaldate on Employee_Mileage__c (before insert , before
      if(customSetting.mileageremoveapprovaldate__c == true){
          MileageTriggerHandler.MileageRemoveApprovalDateHandler(Trigger.new);
      }
-    
-     System.debug('vdv');
 }
