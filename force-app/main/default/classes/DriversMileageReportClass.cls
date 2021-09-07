@@ -9,6 +9,7 @@ public with sharing class DriversMileageReportClass {
         drivers = new List<DriverWrp>();
         minMileage = 0.00;
         String accName = apexpages.currentpage().getparameters().get('name');
+        system.System.debug('accName'+accName);
         if(!String.isBlank(accName)) {
             accounts = accName;
         } else {
