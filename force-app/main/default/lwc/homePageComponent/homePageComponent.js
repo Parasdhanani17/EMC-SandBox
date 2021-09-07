@@ -77,6 +77,7 @@ export default class HomePageComponent extends LightningElement {
     showSync = false;
     showUrl = false;
     managerLoggedIn = false;
+    unapproveCheck = false;
     // mileageRecordSize(accId, drId, StDate, EnDate, OrName,
     //     DestName, ActDriver,
     //     StMileage,
@@ -387,6 +388,7 @@ export default class HomePageComponent extends LightningElement {
                 modalbackdrop.classList.remove("slds-hide");
                 this.emailaddressvalue = JSON.stringify(this.approveRejectData);
                 this.isSelectedChecked = true;
+                this.unapproveCheck = false;
                 this.approveRejectData = [];
 
             } else {
@@ -402,6 +404,42 @@ export default class HomePageComponent extends LightningElement {
         }
 
 
+    }
+
+    // Unapprove Button Clicked
+    handleUnapproveClick(){
+        if (this.approveRejectData === undefined) {
+            let alertElement = this.template.querySelector('c-lwc-alert');
+            alertElement.showAlert = true;
+            this.isAlertEnabled = true;
+            this.alertMessage = "Select atleast one trip to unapprove.";
+            setTimeout(() => {
+                alertElement.showAlert = false;
+                this.isAlertEnabled = false;
+            }, 5000);
+        } else {
+            if (this.approveRejectData.length != 0) {
+                this.modalHeader = "Unapprove Trips";
+                this.modalContent = "Are you sure you want to unapprove the selected trips ?"
+                var modalShow = this.template.querySelector('c-modal-popup').ModalClassList();
+                var modalbackdrop = this.template.querySelector('c-modal-popup').ModalBackdrop();
+                modalShow.classList.remove("slds-hide");
+                modalbackdrop.classList.remove("slds-hide");
+                this.emailaddressvalue = JSON.stringify(this.approveRejectData);
+                this.isSelectedChecked = false;
+                this.unapproveCheck = true;
+                this.approveRejectData = [];
+            } else {
+                let alertElement = this.template.querySelector('c-lwc-alert');
+                alertElement.showAlert = true;
+                this.isAlertEnabled = true;
+                this.alertMessage = "Select atleast one trip to unapprove.";
+                setTimeout(() => {
+                    alertElement.showAlert = false;
+                    this.isAlertEnabled = false;
+                }, 5000);
+            }
+        }
     }
     // Reject Button Clicked 
     handleRejectClick() {
@@ -424,6 +462,7 @@ export default class HomePageComponent extends LightningElement {
                 modalbackdrop.classList.remove("slds-hide");
                 this.emailaddressvalue = JSON.stringify(this.approveRejectData);
                 this.isSelectedChecked = false;
+                this.unapproveCheck = false;
                 this.approveRejectData = [];
             } else {
                 let alertElement = this.template.querySelector('c-lwc-alert');
@@ -471,6 +510,14 @@ export default class HomePageComponent extends LightningElement {
             }
         }
     }
+
+    // Event fired when approve, reject or unapprove modal is closed
+    handleResetEvent(event){
+        if(event.detail){
+            console.log("inside reset event: " + event.detail)
+            this.template.querySelector('c-data-table-component').resetSelected();
+        }
+    }
     // approve reject email handler
     handleSendEmailEvent(event) {
         var isSend = 'email send';
@@ -497,10 +544,12 @@ export default class HomePageComponent extends LightningElement {
     // success message event
     handleSuccessEvent() {
         var label;
-        if (this.isSelectedChecked === false) {
+        if (this.isSelectedChecked === false && this.unapproveCheck === false) {
             label = "rejected";
-        } else if (this.isSelectedChecked === true) {
+        } else if (this.isSelectedChecked === true && this.unapproveCheck === false) {
             label = "approved"
+        } else if (this.isSelectedChecked === false && this.unapproveCheck === true){
+            label = "unapprove"
         }
         setTimeout(() => {
             this.template.querySelector('c-toast').showToast(

@@ -502,6 +502,19 @@
     border-radius: 0px !important;
 }
 
+.slds-unapprovebtn {
+    color: #000 !important;
+    border-color: #000 !important;
+    font-family: 'Proxima Nova Bold' !important;
+    border-radius: 0px !important;
+}
+
+.slds-unapprovebtn:hover {
+    background: #b93847 !important;
+    border-color: #b93847 !important;
+    color: #ffffff !important;
+}
+
 .slds-icon-text-default:hover {
     fill: #ffffff !important;
 }

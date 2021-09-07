@@ -116,6 +116,35 @@ export default class DataTableComponent extends LightningElement {
     // console.log("inside row limit", mileageRowLt);
     return mileageRowLt;
   }
+
+  @api resetSelected(){
+    var defaultCheckbox, searchCheckbox, m, lengthOfInput;
+    searchCheckbox = this.template.querySelectorAll(
+      ".checkboxCheckUncheckSearch"
+    );
+
+    defaultCheckbox = this.template.querySelectorAll(
+      ".checkboxCheckUncheck"
+    );
+    this.template.querySelector(".CheckUncheckAll").checked = false;
+    if (this.searchData.length != 0) {
+      console.log("inside search data");
+      lengthOfInput = searchCheckbox.length;
+      for (m = 0; m < lengthOfInput; m++) {
+        if (searchCheckbox[m].checked === true) {
+          searchCheckbox[m].checked = false;
+        }
+      }
+      console.log("search check", searchCheckbox);
+    }else{
+      lengthOfInput = defaultCheckbox.length;
+      for (m = 0; m < lengthOfInput; m++) {
+        if (defaultCheckbox[m].checked === true) {
+          defaultCheckbox[m].checked = false;
+        }
+      }
+    }
+  }
   // Advance Search Based on lookups such as Date,Driver,Mileage etc
   @api getSearchData(value, isMailSend, dataLen, rLength) {
   //  console.log("Mileage Size: ", dataLen);

@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.css"  crossorigin="anonymous" referrerpolicy="no-referrer" />
         <apex:include pageName="EMC_Common_Scripts" />
         <script src="{!URLFOR($Resource.dirPagination)}"></script>
+        <script src="{!URLFOR($Resource.EmcCSS,'emc-design/assets/js/moment.min.js')}"></script>
         <style type="text/css">
             /*Media Queries*/
 
@@ -664,17 +665,19 @@
                                  scope.sortKey = keyname;
                              };*/
                             scope.updatePagination = function () {
-
                                 if (scope.search.length > 0) {
                                     scope.itemPerPage = 8;
-
-                                    var filteredArray = scope.model.mileageList.filter(function (number) {
-                                        if (number.origin != '' && number.origin != null && number.origin != undefined && number.destination != '' && number.destination != null && number.destination != undefined) {
-
+                                    var filteredArray = (search_table(scope.search) === 'String') ? scope.model.mileageList.filter(function (number) {
+                                        if (number.origin != '' && number.origin != null && number.origin != undefined && number.destination != '' && number.destination != null && number.destination != undefined){
                                             return number.origin.toLowerCase().indexOf(scope.search.toLowerCase()) !== -1 || number.destination.toLowerCase().indexOf(scope.search.toLowerCase()) !== -1;
                                         }
                                         return number.origin, number.destination;
-                                    });
+                                    }) :  scope.model.mileageList.filter(function (number) {
+                                        if (number.mileage != '' && number.mileage != null && number.mileage != undefined && number.variableamount != '' && number.variableamount != null && number.variableamount != undefined){
+                                            return number.mileage.indexOf(scope.search) !== -1 || number.variableamount.indexOf(scope.search) !== -1;
+                                        }
+                                        return number.mileage, number.variableamount;
+                                    }) ;
 
                                     scope.searchedArray = filteredArray;
                                     scope.showData = [];
@@ -738,16 +741,10 @@
                             //     search_table($(this).val());
                             // });
 
-                            // function search_table(value) {
-                            //    if(!isNaN(value) === true) {
-                            //        console.log("Integer")
-                            //    }
-                            //    else if(isDate(value) === true) {
-                            //        console.log("Date")
-                            //    }
-                            //    else{
-                            //        console.log("string");
-                            //    }
+                             function search_table(value) {
+                              var type = (!isNaN(value) === true) ? 'Integer' : (isDate(value) === true) ? 'Date' : 'String';
+                              return type;
+                             }
                             //     $('#driver-dashbord-month-model .content-tr').each(function () {
                             //         var found = 'false';
                             //         $(this).each(function () {
@@ -764,10 +761,10 @@
                             //         }
                             //     });
                            // }  
-                            // function isDate(dateVal) {
-                            //     var d = new Date(dateVal);
-                            //     return d.toString() === 'Invalid Date' ? false : true;
-                            // }
+                            function isDate(dateVal) {
+                                var d  = moment(dateVal , "MM/DD/YY", true).isValid()
+                                return d;
+                            }
  
                             $('input[type=search]').on('search', function () {
                                 scope.search = "";
@@ -851,7 +848,8 @@
 
             app.controller('DriverDashboardController', ['$scope', '$filter', '$timeout',
                 function ($scope, $filter, $timeout) {
-
+                    console.log(moment("06/22/2015", "MM/DD/YYYY", true).isValid())// true
+                    console.log(moment("06/22/2015", "DD/MM/YYYY", true).isValid()) // false
                     var url_string = $(location).attr("href");
                     var url = new URL(url_string);
                     $scope.id = url.searchParams.get("id");

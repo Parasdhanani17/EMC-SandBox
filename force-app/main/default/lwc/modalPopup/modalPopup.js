@@ -11,6 +11,7 @@ export default class ModalPopup extends LightningElement {
     @api modalContent;
     @api approvedTripList;
     @api isChecked = false;
+    @api isUnapprove = false;
     @api ModalClassList() {
         let sectionElement = this.template.querySelector("section");
         return sectionElement;
@@ -24,7 +25,7 @@ export default class ModalPopup extends LightningElement {
     // Yes Button Click Event
     handleEmailSend() {
         if (this.isChecked != null) {
-            this.sendEmailValue = true;
+            this.sendEmailValue = (this.isUnapprove === false) ? true : false;
             this.SendEmailCheck();
             //window.location.reload();
         }else{
@@ -56,10 +57,12 @@ export default class ModalPopup extends LightningElement {
     SendEmailCheck() {
         this.approveTrip = this.approvedTripList;
         this.selectedCheck = this.isChecked;
+
         approveMileages({
                 checked: this.selectedCheck,
                 emailaddress: this.approveTrip,
-                sendEmail: this.sendEmailValue
+                sendEmail: this.sendEmailValue,
+                unapprove: this.isUnapprove
             })
             .then((result) => {
                 console.log(result);
@@ -78,10 +81,15 @@ export default class ModalPopup extends LightningElement {
 
     // Close 'X' Event
     handleCancel() {
+        const resetEvent = new CustomEvent("handleresetevent", {
+            detail: 'Reset'
+        });
+        this.dispatchEvent(resetEvent);
         this.template.querySelector("section").classList.add("slds-hide");
         this.template
             .querySelector("div.modalBackdrops")
             .classList.add("slds-hide");
+     
     }
 
     // delete trip event
